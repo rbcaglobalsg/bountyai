@@ -20,9 +20,9 @@ export async function generateHints(
     repoContext?: { readme: string, fileTree: string }
 ): Promise<string> {
     const genAI = getGeminiClient();
-    // Use gemini-1.5-pro for its massive context window capability
+    // Use gemini-2.5-pro for its massive context window capability
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-pro",
+        model: "gemini-2.5-pro",
         systemInstruction: `You are an elite, senior software architect specializing in technical bounties and open-source contributions.
 Your task is to provide a meticulously detailed, highly actionable, and precise step-by-step guide to solve the given issue.
 You have access to the repository's file tree and README. Analyze the architecture based on the file tree to determine precisely WHICH files need to be modified.

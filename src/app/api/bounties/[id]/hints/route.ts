@@ -19,7 +19,7 @@ export async function GET(
         );
     }
 
-    const { id } = await params;
+    const { id } = params;
 
     const bounty = await prisma.bounty.findUnique({
         where: { id },

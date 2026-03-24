@@ -2,13 +2,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { generateHints } from '@/lib/openai';
+import { generateHints } from '@/lib/gemini';
+import { getRepositoryContext } from '@/lib/github';
 import { Plan } from '@/types';
 
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
+    console.log('[DEBUG ROUTE] OPENAI_API_KEY present:', !!process.env.OPENAI_API_KEY);
+    if (process.env.OPENAI_API_KEY) {
+        console.log('[DEBUG ROUTE] Key prefix:', process.env.OPENAI_API_KEY.slice(0, 10));
+    }
     const session = await getServerSession(authOptions);
     const userPlan = (session?.user?.plan as Plan) || Plan.FREE;
  
@@ -46,7 +51,8 @@ export async function GET(
 
     // Generate fresh hints
     try {
-        const hints = await generateHints(bounty.title, bounty.description, bounty.url);
+        const repoContext = await getRepositoryContext(bounty.url);
+        const hints = await generateHints(bounty.title, bounty.description, bounty.url, repoContext);
         
         // Save to submission (upsert)
         await prisma.submission.upsert({

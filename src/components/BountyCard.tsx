@@ -50,7 +50,7 @@ export default function BountyCard({
     const isElite = userPlan === Plan.ELITE;
 
     return (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-green-500/30 transition-all group shadow-sm flex flex-col h-full relative overflow-hidden">
+        <div className={`bg-gray-900 border border-gray-800 rounded-2xl p-6 hover:border-green-500/30 transition-all group shadow-sm flex flex-col relative overflow-hidden min-h-[480px] ${isFree ? 'pb-12' : ''}`}>
             {/* Glossy Overlay for Premium Look */}
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-500/5 to-transparent rounded-full -mr-16 -mt-16 blur-2xl group-hover:bg-green-500/10 transition-all" />
             
@@ -135,21 +135,21 @@ export default function BountyCard({
                         disabled={isFree}
                         className={`flex-1 font-bold py-2.5 rounded-xl text-sm flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
                             isFree 
-                            ? 'bg-gray-900 text-gray-700 border border-gray-800 cursor-not-allowed' 
+                            ? 'bg-gray-900 text-gray-700 border border-gray-800 cursor-not-allowed font-black' 
                             : isElite 
                                 ? 'bg-purple-600 hover:bg-purple-500 text-white shadow-lg shadow-purple-500/20'
                                 : 'bg-green-500 hover:bg-green-600 text-black shadow-lg shadow-green-500/20'
                         }`}
                     >
-                        {isFree ? <Lock className="w-4 h-4" /> : isElite ? <Sparkles className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
-                        {isFree ? 'Pro Req.' : isElite ? 'AI Solution' : 'Solve It'}
+                        {isFree ? <Lock className="w-4 h-4 text-gray-600" /> : isElite ? <Sparkles className="w-4 h-4" /> : <Zap className="w-4 h-4" />}
+                        {isFree ? 'LOCKED' : isElite ? 'AI Solution' : 'Solve It'}
                     </button>
                 </div>
             </div>
             
             {isFree && (
-                <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-gray-950 text-center pointer-events-none">
-                     <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest animate-pulse">Upgrade to Pro to Solve</p>
+                <div className="absolute inset-x-0 bottom-0 pt-16 pb-6 px-4 bg-gradient-to-t from-black via-black/80 to-transparent text-center pointer-events-none z-20">
+                     <p className="text-[11px] text-green-500 font-black uppercase tracking-[0.2em] animate-pulse drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]">Upgrade to Pro to Solve</p>
                 </div>
             )}
         </div>

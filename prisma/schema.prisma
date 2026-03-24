@@ -17,6 +17,7 @@ model User {
   image         String?
   githubId      String?   @unique
   githubUsername String?
+  password      String?
 
   // 스킬 & 설정
   skills        String[]  // ["React", "Node.js", "Python"]

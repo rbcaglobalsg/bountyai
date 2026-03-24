@@ -2,29 +2,55 @@
 
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  Crosshair,
   Zap,
-  DollarSign,
-  Shield,
-  TrendingUp,
   GitBranch,
   Check,
-  Crown,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Mail,
+  Lock,
+  Loader2
 } from 'lucide-react';
 
 export default function Home() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [showEmailLogin, setShowEmailLogin] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     if (session) {
       router.push('/bounties');
     }
   }, [session, router]);
+
+  const handleEmailLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false
+      });
+      
+      if (result?.error) {
+        setError('Invalid email or password');
+      } else {
+        router.push('/bounties');
+      }
+    } catch (err) {
+      setError('An error occurred during login');
+    }
+    setLoading(false);
+  };
 
   if (status === 'loading') {
     return (
@@ -70,7 +96,7 @@ export default function Home() {
       <section className="relative max-w-7xl mx-auto px-4 pt-32 pb-40 text-center overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-green-500/10 rounded-full blur-[120px] -z-10 animate-pulse" />
         
-        <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-5 py-2 mb-10 animate-fade-in">
+        <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-5 py-2 mb-10">
           <Zap className="w-4 h-4 text-green-400 fill-green-400/20" />
           <span className="text-green-400 text-sm font-bold tracking-tight">
             NEW: GPT-4o Powered Matching
@@ -90,15 +116,79 @@ export default function Home() {
           The ultimate platform for open-source hunters. AI scans GitHub to find bounties matching your skill set and helps you solve them.
         </p>
 
-        <div className="flex flex-col sm:flex-row justify-center gap-6">
-          <button
-            onClick={() => signIn('github')}
-            className="group bg-green-500 hover:bg-green-400 text-black font-black px-10 py-5 rounded-2xl text-xl flex items-center justify-center gap-3 transition-all shadow-2xl shadow-green-500/30 scale-100 hover:scale-105 active:scale-95"
-          >
-            <GitBranch className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-            Start Earning with GitHub
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </button>
+        <div className="flex flex-col items-center gap-6">
+          {!showEmailLogin ? (
+            <>
+              <button
+                onClick={() => signIn('github')}
+                className="group bg-green-500 hover:bg-green-400 text-black font-black px-10 py-5 rounded-2xl text-xl flex items-center justify-center gap-3 transition-all shadow-2xl shadow-green-500/30 scale-100 hover:scale-105 active:scale-95"
+              >
+                <GitBranch className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                Start Earning with GitHub
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+              <button 
+                onClick={() => setShowEmailLogin(true)}
+                className="text-gray-500 hover:text-gray-300 text-sm font-bold transition-colors"
+              >
+                Or sign in with email
+              </button>
+            </>
+          ) : (
+            <div className="w-full max-w-md bg-gray-900/50 border border-gray-800 p-8 rounded-[32px] backdrop-blur-xl animate-in fade-in slide-in-from-bottom-4">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-bold">Email Login</h3>
+                <button 
+                  onClick={() => setShowEmailLogin(false)}
+                  className="text-gray-500 hover:text-white"
+                >
+                  Back
+                </button>
+              </div>
+              
+              <form onSubmit={handleEmailLogin} className="space-y-4">
+                <div className="space-y-2 text-left">
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Email Address</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
+                    <input 
+                      type="email" 
+                      placeholder="admin@rbcaglobal.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-black border border-gray-800 rounded-xl py-3.5 pl-12 pr-4 focus:border-green-500 focus:outline-none transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2 text-left">
+                  <label className="text-xs font-bold text-gray-500 uppercase ml-1">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
+                    <input 
+                      type="password" 
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-black border border-gray-800 rounded-xl py-3.5 pl-12 pr-4 focus:border-green-500 focus:outline-none transition-all"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {error && <div className="text-red-500 text-sm font-bold">{error}</div>}
+                
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-green-500 hover:bg-green-400 text-black font-black py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-500/20 active:scale-95 disabled:bg-green-900"
+                >
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Sign In'}
+                </button>
+              </form>
+            </div>
+          )}
         </div>
 
         <div className="mt-10 flex items-center justify-center gap-8 text-gray-500">
@@ -112,29 +202,12 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="relative z-10 py-16 px-4">
-        <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 bg-gray-900/40 backdrop-blur-xl border border-gray-800 p-10 rounded-[40px] shadow-2xl">
-          {[
-            { label: 'Available Bounties', val: '$2.4M+' },
-            { label: 'Active Issues', val: '5,000+' },
-            { label: 'Match Accuracy', val: '92%' },
-            { label: 'Avg. Earnings', val: '$500/mo' }
-          ].map((stat, i) => (
-            <div key={i} className="text-center">
-               <div className="text-3xl md:text-4xl font-black text-white mb-2">{stat.val}</div>
-               <div className="text-gray-500 text-xs font-bold uppercase tracking-widest">{stat.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Dynamic Pricing Section */}
+      {/* Pricing Section */}
       <section className="max-w-7xl mx-auto px-4 py-32">
         <div className="text-center mb-20">
           <h2 className="text-4xl md:text-5xl font-black mb-6 text-white font-display">Predictable Pricing</h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            From side-proejcts to full-time bounty hunting, we have a plan for you.
+            From side-projects to full-time bounty hunting, we have a plan for you.
           </p>
         </div>
 
@@ -148,25 +221,18 @@ export default function Home() {
                   : 'border-gray-800'
               }`}
             >
-              {plan.bestValue && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-green-500 text-black text-xs font-black uppercase px-4 py-1.5 rounded-full tracking-widest">
-                  Best Value
-                </div>
-              )}
-              
               <div className="mb-8">
                 <h3 className="text-xl font-bold text-gray-400 mb-2">{plan.name}</h3>
                 <div className="flex items-baseline gap-1">
                   <span className="text-5xl font-black text-white">{plan.price}</span>
                   <span className="text-gray-500 font-bold">/mo</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-2 font-medium">{plan.desc}</p>
               </div>
 
               <div className="space-y-4 mb-10 flex-grow">
                 {plan.features.map((feat, j) => (
                   <div key={j} className="flex items-center gap-3">
-                    <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${plan.accent === 'green' ? 'bg-green-500/20 text-green-400' : plan.accent === 'blue' ? 'bg-blue-500/20 text-blue-400' : 'bg-gray-800 text-gray-500'}`}>
+                    <div className="w-5 h-5 bg-gray-800 rounded-full flex items-center justify-center flex-shrink-0 text-gray-500">
                       <Check className="w-3 h-3" />
                     </div>
                     <span className="text-gray-300 text-sm font-medium">{feat}</span>
@@ -179,9 +245,7 @@ export default function Home() {
                 className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${
                   plan.accent === 'green' 
                     ? 'bg-green-500 hover:bg-green-400 text-black shadow-lg shadow-green-500/20' 
-                    : plan.accent === 'blue' 
-                      ? 'bg-blue-600 hover:bg-blue-500 text-white' 
-                      : 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700'
+                    : 'bg-gray-800 hover:bg-gray-700 text-white border border-gray-700'
                 }`}
               >
                 {plan.button}
@@ -193,34 +257,7 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t border-gray-900 py-16 bg-gray-950/50">
-        <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12 text-gray-500 mb-12">
-           <div className="col-span-2">
-              <div className="flex items-center gap-2 text-white font-black text-2xl mb-6 font-display">
-                 <Zap className="w-6 h-6 text-green-400 fill-green-400/20" />
-                 BountyAI
-              </div>
-              <p className="max-w-sm text-sm leading-relaxed">
-                The AI-powered bounty hunter hub. We help developers find and solve open-source rewards faster than anyone else.
-              </p>
-           </div>
-           <div>
-              <h4 className="text-white font-bold mb-6">Product</h4>
-              <ul className="space-y-4 text-sm">
-                <li><a href="#" className="hover:text-green-400 transition">Features</a></li>
-                <li><a href="#" className="hover:text-green-400 transition">Pricing</a></li>
-                <li><a href="#" className="hover:text-green-400 transition">GitHub Crawler</a></li>
-              </ul>
-           </div>
-           <div>
-              <h4 className="text-white font-bold mb-6">Company</h4>
-              <ul className="space-y-4 text-sm">
-                <li><a href="#" className="hover:text-green-400 transition">About</a></li>
-                <li><a href="#" className="hover:text-green-400 transition">Privacy</a></li>
-                <li><a href="#" className="hover:text-green-400 transition">Terms</a></li>
-              </ul>
-           </div>
-        </div>
-        <div className="max-w-7xl mx-auto px-4 text-center text-xs tracking-widest uppercase border-t border-gray-900 pt-8">
+        <div className="max-w-7xl mx-auto px-4 text-center text-xs tracking-widest uppercase py-8">
           © 2026 BountyAI. Built for hunters.
         </div>
       </footer>

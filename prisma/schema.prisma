@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+// ── 사용자 ──────────────────────────
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  githubId      String?   @unique
+  githubUsername String?
+
+  // 스킬 & 설정
+  skills        String[]  // ["React", "Node.js", "Python"]
+  minBounty     Int       @default(0)    // 최소 바운티 금액
+  maxHours      Int       @default(10)   // 최대 투자 시간
+  alertEmail    Boolean   @default(true)
+  
+  // 구독
+  plan          Plan      @default(FREE)
+  stripeId      String?
+  
+  // 관계
+  accounts      Account[]
+  sessions      Session[]
+  matches       Match[]
+  submissions   Submission[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Plan {
+  FREE
+  PRO
+  ELITE
+}
+
+// ── NextAuth ────────────────────────
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── 바운티 ──────────────────────────
+model Bounty {
+  id          String   @id @default(cuid())
+  
+  // 기본 정보
+  title       String
+  description String
+  url         String   @unique  // 원본 이슈 URL
+  
+  // 금액 & 상태
+  amount      Int               // USD 센트 단위
+  currency    String   @default("USD")
+  status      BountyStatus @default(OPEN)
+  
+  // 분류
+  source      String            // "github", "algora", "issuehunt"
+  repoOwner   String?
+  repoName    String?
+  issueNumber Int?
+  labels      String[]
+  languages   String[]          // ["TypeScript", "React"]
+  
+  // AI 분석
+  difficulty  Difficulty?
+  estimatedHours Float?
+  aiAnalysis  String?           // AI 분석 결과 JSON
+  
+  // 경쟁
+  competitors Int     @default(0) // 현재 도전 중인 사람 수
+  
+  // 관계
+  matches     Match[]
+  submissions Submission[]
+  
+  // 날짜
+  postedAt    DateTime
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum BountyStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
+}
+
+// ── 매칭 ────────────────────────────
+model Match {
+  id          String  @id @default(cuid())
+  
+  userId      String
+  bountyId    String
+  
+  score       Float             // 매칭 점수 (0~100)
+  reasons     String[]          // ["스킬 일치: React", "적정 난이도"]
+  
+  // 상태
+  status      MatchStatus @default(RECOMMENDED)
+  notified    Boolean     @default(false)
+  
+  user        User    @relation(fields: [userId], references: [id])
+  bounty      Bounty  @relation(fields: [bountyId], references: [id])
+  
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, bountyId])
+}
+
+enum MatchStatus {
+  RECOMMENDED   // AI가 추천
+  VIEWED        // 사용자가 봄
+  STARTED       // 풀이 시작
+  SKIPPED       // 건너뜀
+}
+
+// ── 제출 ────────────────────────────
+model Submission {
+  id          String  @id @default(cuid())
+  
+  userId      String
+  bountyId    String
+  
+  prUrl       String?           // PR 링크
+  status      SubmissionStatus @default(IN_PROGRESS)
+  
+  // AI 어시스턴트
+  aiHints     String?           // AI 풀이 힌트
+  aiCode      String?           // AI 생성 코드
+  
+  // 수익
+  earned      Int?              // 실제 수령 금액 (센트)
+  fee         Int?              // BountyAI 수수료 (센트)
+  
+  user        User    @relation(fields: [userId], references: [id])
+  bounty      Bounty  @relation(fields: [bountyId], references: [id])
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, bountyId])
+}
+
+enum SubmissionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  ACCEPTED
+  REJECTED
+}
+
+// ── 크롤링 로그 ─────────────────────
+model CrawlLog {
+  id          String   @id @default(cuid())
+  source      String             // "github", "algora"
+  totalFound  Int
+  newAdded    Int
+  errors      Int      @default(0)
+  duration    Int                // 밀리초
+  createdAt   DateTime @default(now())
+}

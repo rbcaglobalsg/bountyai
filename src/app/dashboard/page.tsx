@@ -130,13 +130,13 @@ export default function Dashboard() {
                             title={bounty.title}
                             amount={bounty.amount}
                             languages={bounty.languages}
-                            difficulty={bounty.difficulty || undefined}
-                            estimatedHours={bounty.estimatedHours || undefined}
+                            difficulty={bounty.difficulty ?? null}
+                            estimatedHours={bounty.estimatedHours ?? null}
                             competitors={bounty.competitors}
                             url={bounty.url}
                             source={bounty.source}
-                            repoOwner={bounty.repoOwner || undefined}
-                            repoName={bounty.repoName || undefined}
+                            repoOwner={bounty.repoOwner ?? undefined}
+                            repoName={bounty.repoName ?? undefined}
                         />
                     ))}
                 </div>

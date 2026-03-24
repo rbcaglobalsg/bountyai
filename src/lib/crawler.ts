@@ -33,17 +33,28 @@ export async function crawlAllBounties(): Promise<CrawledBounty[]> {
 export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
     const bounties: CrawledBounty[] = [];
 
-    // 바운티 관련 라벨로 검색
+    // 필터: 최근 30일 이내에 업데이트된 것들만 (유효성 확보)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const dateQuery = `updated:>=${thirtyDaysAgo.toISOString().split('T')[0]}`;
+
     const queries = [
-        'label:bounty state:open',
-        'label:algora state:open',
-        'label:issuehunt state:open',
+        `label:bounty state:open ${dateQuery}`,
+        `label:algora state:open ${dateQuery}`,
+        `label:issuehunt state:open ${dateQuery}`,
+        `label:💰 state:open ${dateQuery}`,
+        `"managed by algora" state:open ${dateQuery}`,
+        `"issued on issuehunt" state:open ${dateQuery}`,
+        `"algora.io" state:open ${dateQuery}`,
+        `"issuehunt.io" state:open ${dateQuery}`,
+        `"bounty" "$" state:open is:issue ${dateQuery}`,
+        `"reward" "$" state:open is:issue ${dateQuery}`,
     ];
 
     for (const query of queries) {
         try {
             const response = await fetch(
-                `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=created&order=desc&per_page=10`,
+                `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=30`,
                 {
                     headers: {
                         Accept: 'application/vnd.github.v3+json',

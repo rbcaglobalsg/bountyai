@@ -1,8 +1,12 @@
 import OpenAI from 'openai';
 
-export const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+function getOpenAIClient(): OpenAI {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+        throw new Error('OPENAI_API_KEY is not set');
+    }
+    return new OpenAI({ apiKey });
+}
 
 export async function analyzeBounty(
     title: string,
@@ -14,6 +18,8 @@ export async function analyzeBounty(
     skills: string[];
     summary: string;
 }> {
+    const openai = getOpenAIClient();
+
     const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [
@@ -44,6 +50,8 @@ export async function generateHints(
     description: string,
     repoUrl: string
 ): Promise<string> {
+    const openai = getOpenAIClient();
+
     const response = await openai.chat.completions.create({
         model: 'gpt-4o-mini',
         messages: [

@@ -2,6 +2,7 @@ import { NextAuthOptions } from 'next-auth';
 import GithubProvider from 'next-auth/providers/github';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from './prisma';
+import { Plan } from '@/types';
 
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma) as any,
@@ -17,6 +18,7 @@ export const authOptions: NextAuthOptions = {
                     image: profile.avatar_url,
                     githubId: profile.id.toString(),
                     githubUsername: profile.login,
+                    plan: Plan.FREE,
                 };
             },
         }),

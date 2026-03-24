@@ -30,9 +30,9 @@ export async function matchBountyToUsers(
         const reasons: string[] = [];
 
         // 1. 스킬 매칭 (최대 40점)
-        const matchedSkills = user.skills.filter((s) =>
+        const matchedSkills = user.skills.filter((s: string) =>
             bounty.languages.some(
-                (l) => l.toLowerCase() === s.toLowerCase()
+                (l: string) => l.toLowerCase() === s.toLowerCase()
             )
         );
         const skillScore = Math.min(

@@ -60,8 +60,8 @@ export async function GET(request: NextRequest) {
         if (userPlan !== Plan.FREE) {
             // Simple dynamic matching logic (syncing with matcher.ts logic)
             let score = 0;
-            const matchedSkills = userSkills.filter(s => 
-                bounty.languages.some(l => l.toLowerCase() === s.toLowerCase())
+            const matchedSkills = userSkills.filter((s: string) => 
+                bounty.languages.some((l: string) => l.toLowerCase() === s.toLowerCase())
             );
             
             // 1. Skill Match (max 40)

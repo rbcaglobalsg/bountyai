@@ -6,6 +6,8 @@ interface GitHubIssue {
     repository_url: string;
     number: number;
     created_at: string;
+    updated_at: string;
+    comments: number;
 }
 
 interface CrawledBounty {
@@ -20,6 +22,8 @@ interface CrawledBounty {
     labels: string[];
     languages: string[];
     postedAt: Date;
+    linkedPrCount: number;
+    lastActivityAt: Date;
 }
 
 export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
@@ -65,6 +69,9 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
 
                 // 언어 가져오기
                 const languages = await getRepoLanguages(repoOwner, repoName);
+                
+                // 연결된 PR 개수 가져오기 (실제 보상 진행도를 알 수 있는 핵심 지표)
+                const linkedPrCount = await getLinkedPrCount(repoOwner, repoName, issue.number);
 
                 bounties.push({
                     title: issue.title,
@@ -78,6 +85,8 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
                     labels: issue.labels.map((l) => l.name),
                     languages,
                     postedAt: new Date(issue.created_at),
+                    linkedPrCount,
+                    lastActivityAt: new Date(issue.updated_at),
                 });
             }
         } catch (error) {
@@ -94,7 +103,6 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
 }
 
 function extractAmount(text: string): number {
-    // $500, $1,000, $1000 등 파싱
     const patterns = [
         /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g,
         /(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)\s*(?:USD|dollars?)/gi,
@@ -139,5 +147,38 @@ async function getRepoLanguages(
         return Object.keys(data).slice(0, 5);
     } catch {
         return [];
+    }
+}
+
+async function getLinkedPrCount(
+    owner: string,
+    name: string,
+    issueNumber: number
+): Promise<number> {
+    try {
+        const response = await fetch(
+            `https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}/timeline`,
+            {
+                headers: {
+                    Accept: 'application/vnd.github.mockingbird-preview+json',
+                    ...(process.env.GITHUB_TOKEN
+                        ? { Authorization: `token ${process.env.GITHUB_TOKEN}` }
+                        : {}),
+                },
+            }
+        );
+
+        if (!response.ok) return 0;
+
+        const data = await response.json();
+        const prEvents = data.filter((e: any) => 
+            e.event === 'cross-referenced' && 
+            e.source?.type === 'issue' && 
+            e.source?.issue?.pull_request
+        );
+
+        return prEvents.length;
+    } catch {
+        return 0;
     }
 }

@@ -9,7 +9,8 @@ import {
     Zap, 
     BarChart3,
     Sparkles,
-    Shield
+    Shield,
+    GitBranch
 } from 'lucide-react';
 import { Plan } from '@/types';
 
@@ -27,8 +28,12 @@ interface BountyCardProps {
     repoOwner?: string;
     repoName?: string;
     userPlan?: Plan;
+    linkedPrCount?: number;
+    lastActivityAt?: string | null;
     onStartSolving?: (id: string, title: string) => void;
 }
+
+import { Info, Flame, History, ExternalLink } from 'lucide-react';
 
 export default function BountyCard({
     id,
@@ -44,6 +49,8 @@ export default function BountyCard({
     repoOwner,
     repoName,
     userPlan = Plan.FREE,
+    linkedPrCount = 0,
+    lastActivityAt,
     onStartSolving,
 }: BountyCardProps) {
     const isFree = userPlan === Plan.FREE;
@@ -111,14 +118,36 @@ export default function BountyCard({
                     </div>
                 </div>
 
-                <div className="flex gap-2 text-gray-500 text-xs py-2 px-1">
+                <div className="flex gap-2 text-gray-500 text-xs py-2 px-1 items-center">
                     <span className="flex items-center gap-1">
                         <Users className="w-3 h-3" />
                         {competitors} competing
                     </span>
-                    {repoOwner && repoName && (
-                        <span className="truncate opacity-50">/ {repoOwner}/{repoName}</span>
+                    {linkedPrCount !== undefined && linkedPrCount > 0 && (
+                        <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full flex items-center gap-1 border border-blue-500/20 font-bold">
+                             <GitBranch className="w-3 h-3" />
+                             {linkedPrCount} PRs
+                        </span>
                     )}
+                    {linkedPrCount === 0 && (
+                        <span className="bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full flex items-center gap-1 border border-green-500/20 font-bold">
+                             <Flame className="w-3 h-3" />
+                             Fresh
+                        </span>
+                    )}
+                </div>
+
+                {/* Reward Guide - Helps users understand the flow */}
+                <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl p-3 flex items-start gap-2.5 mb-2 group-hover:bg-blue-500/10 transition-all">
+                    <Info className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div>
+                        <div className="text-[10px] text-blue-300 font-bold uppercase tracking-widest mb-0.5">How to earn</div>
+                        <div className="text-[11px] text-gray-400 leading-snug">
+                            1. Go to Issue & Comment <code className="text-blue-300">/attempt</code><br/>
+                            2. Fork & Submit PR addressing the issue.<br/>
+                            3. Get paid automatically on Merge.
+                        </div>
+                    </div>
                 </div>
 
                 <div className="flex gap-3">

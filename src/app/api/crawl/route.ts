@@ -10,49 +10,59 @@ export async function POST() {
         let newAdded = 0;
 
         for (const bounty of bounties) {
+            // AI 분석 (난이도, 예상 시간) - New bounties only for efficiency, 
+            // but we can reuse existing or re-analyze if needed.
             const existing = await prisma.bounty.findUnique({
                 where: { url: bounty.url },
             });
 
+            let difficulty = existing?.difficulty || 'MEDIUM';
+            let estimatedHours = existing?.estimatedHours || 4;
+            let aiAnalysis = existing?.aiAnalysis || '';
+
             if (!existing) {
-                // AI 분석 (난이도, 예상 시간) - Pro/Elite 핵심 데이터
-                let aiData: { difficulty: string; estimatedHours: number; skills: string[]; summary: string } = { 
-                    difficulty: 'MEDIUM', 
-                    estimatedHours: 4, 
-                    skills: [], 
-                    summary: '' 
-                };
                 try {
                     const { analyzeBounty } = await import('@/lib/openai');
-                    aiData = await analyzeBounty(
+                    const aiData = await analyzeBounty(
                         bounty.title, 
                         bounty.description, 
                         bounty.languages
                     );
+                    difficulty = aiData.difficulty as any;
+                    estimatedHours = aiData.estimatedHours;
+                    aiAnalysis = JSON.stringify(aiData);
                 } catch (e) {
                     console.error('AI Analysis failed for bounty:', bounty.title, e);
                 }
-
-                await prisma.bounty.create({
-                    data: {
-                        title: bounty.title,
-                        description: bounty.description,
-                        url: bounty.url,
-                        amount: bounty.amount,
-                        source: bounty.source,
-                        repoOwner: bounty.repoOwner,
-                        repoName: bounty.repoName,
-                        issueNumber: bounty.issueNumber,
-                        labels: bounty.labels,
-                        languages: bounty.languages,
-                        postedAt: bounty.postedAt,
-                        difficulty: aiData.difficulty as any,
-                        estimatedHours: aiData.estimatedHours,
-                        aiAnalysis: JSON.stringify(aiData),
-                    },
-                });
                 newAdded++;
             }
+
+            // Upsert bounty with updated status/activity
+            await prisma.bounty.upsert({
+                where: { url: bounty.url },
+                update: {
+                    linkedPrCount: bounty.linkedPrCount,
+                    lastActivityAt: bounty.lastActivityAt,
+                },
+                create: {
+                    title: bounty.title,
+                    description: bounty.description,
+                    url: bounty.url,
+                    amount: bounty.amount,
+                    source: bounty.source,
+                    repoOwner: bounty.repoOwner,
+                    repoName: bounty.repoName,
+                    issueNumber: bounty.issueNumber,
+                    labels: bounty.labels,
+                    languages: bounty.languages,
+                    postedAt: bounty.postedAt,
+                    difficulty: difficulty as any,
+                    estimatedHours,
+                    aiAnalysis,
+                    linkedPrCount: bounty.linkedPrCount,
+                    lastActivityAt: bounty.lastActivityAt,
+                },
+            });
         }
 
         const duration = Date.now() - startTime;

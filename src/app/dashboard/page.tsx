@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import {
     DollarSign,
     Crosshair,
@@ -24,6 +24,9 @@ interface Bounty {
     source: string;
     repoOwner: string | null;
     repoName: string | null;
+    linkedPrCount?: number;
+    lastActivityAt?: string | null;
+    matchScore?: number;
 }
 
 export default function Dashboard() {
@@ -62,14 +65,16 @@ export default function Dashboard() {
 
     if (!session) return null;
 
+    const userPlan = (session.user as any).plan;
+
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
-            <h1 className="text-2xl font-bold mb-8">
+            <h1 className="text-2xl font-bold mb-8 text-white">
                 Welcome back, {session.user?.name} 👋
             </h1>
 
             {/* Stats */}
-            <div className="grid grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
                     <div className="flex items-center gap-3 mb-2">
                         <DollarSign className="w-5 h-5 text-green-400" />
@@ -83,7 +88,7 @@ export default function Dashboard() {
                         <Crosshair className="w-5 h-5 text-blue-400" />
                         <span className="text-gray-400 text-sm">Available</span>
                     </div>
-                    <div className="text-2xl font-bold">{bounties.length}</div>
+                    <div className="text-2xl font-bold text-white">{bounties.length}</div>
                 </div>
 
                 <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
@@ -91,7 +96,7 @@ export default function Dashboard() {
                         <CheckCircle className="w-5 h-5 text-purple-400" />
                         <span className="text-gray-400 text-sm">Completed</span>
                     </div>
-                    <div className="text-2xl font-bold">0</div>
+                    <div className="text-2xl font-bold text-white">0</div>
                 </div>
 
                 <div className="bg-gray-800 border border-gray-700 rounded-xl p-6">
@@ -99,12 +104,12 @@ export default function Dashboard() {
                         <TrendingUp className="w-5 h-5 text-yellow-400" />
                         <span className="text-gray-400 text-sm">In Progress</span>
                     </div>
-                    <div className="text-2xl font-bold">0</div>
+                    <div className="text-2xl font-bold text-white">0</div>
                 </div>
             </div>
 
             {/* Bounties */}
-            <h2 className="text-xl font-bold mb-4">🎯 Latest Bounties</h2>
+            <h2 className="text-xl font-bold mb-4 text-white">🎯 Latest Bounties</h2>
 
             {loading ? (
                 <div className="text-center py-12">
@@ -128,15 +133,17 @@ export default function Dashboard() {
                             key={bounty.id}
                             id={bounty.id}
                             title={bounty.title}
-                            amount={bounty.amount}
+                            amount={bounty.amount / 100}
                             languages={bounty.languages}
                             difficulty={bounty.difficulty ?? null}
                             estimatedHours={bounty.estimatedHours ?? null}
                             competitors={bounty.competitors}
+                            matchScore={bounty.matchScore}
                             url={bounty.url}
                             source={bounty.source}
-                            repoOwner={bounty.repoOwner ?? undefined}
-                            repoName={bounty.repoName ?? undefined}
+                            userPlan={userPlan}
+                            linkedPrCount={bounty.linkedPrCount}
+                            lastActivityAt={bounty.lastActivityAt}
                         />
                     ))}
                 </div>

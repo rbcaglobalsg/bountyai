@@ -108,8 +108,10 @@ model Bounty {
   estimatedHours Float?
   aiAnalysis  String?           // AI 분석 결과 JSON
   
-  // 경쟁
+  // 경쟁 & 활동
   competitors Int     @default(0) // 현재 도전 중인 사람 수
+  linkedPrCount Int   @default(0) // 연결된 PR 수
+  lastActivityAt DateTime?        // 최근 활동 시간 (댓글, 커밋 등)
   
   // 관계
   matches     Match[]

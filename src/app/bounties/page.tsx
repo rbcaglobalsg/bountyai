@@ -219,16 +219,19 @@ export default function Bounties() {
                                 key={bounty.id}
                                 id={bounty.id}
                                 title={bounty.title}
-                                amount={bounty.amount}
+                                amount={bounty.amount / 100}
                                 languages={bounty.languages}
                                 difficulty={bounty.difficulty}
                                 estimatedHours={bounty.estimatedHours}
                                 competitors={bounty.competitors}
+                                matchScore={(bounty as any).matchScore}
                                 url={bounty.url}
                                 source={bounty.source}
                                 repoOwner={bounty.repoOwner || undefined}
                                 repoName={bounty.repoName || undefined}
                                 userPlan={userPlan}
+                                linkedPrCount={(bounty as any).linkedPrCount}
+                                lastActivityAt={(bounty as any).lastActivityAt}
                                 onStartSolving={handleStartSolving}
                             />
                         ))}

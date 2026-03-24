@@ -84,10 +84,12 @@ export async function GET(request: NextRequest) {
             ...bounty,
             matchScore,
             // AI Hints are ONLY for ELITE
-            aiAnalysis: userPlan === Plan.ELITE ? bounty.aiAnalysis : null,
-            // Match score/Difficulty/EstimatedHours are for PRO/ELITE
+            aiAnalysis: userPlan === Plan.ELITE ? (bounty as any).aiAnalysis : null,
+            // Match score/Difficulty/EstimatedHours/Activity are for PRO/ELITE
             difficulty: userPlan !== Plan.FREE ? bounty.difficulty : null,
             estimatedHours: userPlan !== Plan.FREE ? bounty.estimatedHours : null,
+            linkedPrCount: userPlan !== Plan.FREE ? (bounty as any).linkedPrCount : 0,
+            lastActivityAt: userPlan !== Plan.FREE ? (bounty as any).lastActivityAt : null,
         };
     });
 

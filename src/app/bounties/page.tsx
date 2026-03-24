@@ -64,12 +64,19 @@ export default function Bounties() {
         try {
             const res = await fetch('/api/crawl', { method: 'POST' });
             const data = await res.json();
+            
+            if (!res.ok) {
+                setCrawlResult(`Error: ${data.error || 'Crawl failed'}`);
+                setCrawling(false);
+                return;
+            }
+
             setCrawlResult(
                 `Found ${data.totalFound} bounties, ${data.newAdded} new added (${data.duration})`
             );
             fetchBounties();
         } catch (error) {
-            setCrawlResult('Crawl failed');
+            setCrawlResult('Connection error during crawl');
         }
         setCrawling(false);
     };

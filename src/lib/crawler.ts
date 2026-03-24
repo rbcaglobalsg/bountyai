@@ -41,20 +41,19 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
     const queries = [
         `label:bounty state:open ${dateQuery}`,
         `label:algora state:open ${dateQuery}`,
-        `label:issuehunt state:open ${dateQuery}`,
-        `label:💰 state:open ${dateQuery}`,
         `"managed by algora" state:open ${dateQuery}`,
         `"issued on issuehunt" state:open ${dateQuery}`,
         `"algora.io" state:open ${dateQuery}`,
         `"issuehunt.io" state:open ${dateQuery}`,
+        `"managed by @algora-io" state:open ${dateQuery}`,
+        `"issued on @issuehunt" state:open ${dateQuery}`,
         `"bounty" "$" state:open is:issue ${dateQuery}`,
-        `"reward" "$" state:open is:issue ${dateQuery}`,
     ];
 
     for (const query of queries) {
         try {
             const response = await fetch(
-                `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=30`,
+                `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=50`,
                 {
                     headers: {
                         Accept: 'application/vnd.github.v3+json',

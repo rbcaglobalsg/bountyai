@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     
     // FREE users are limited to 5 bounties total (no pagination for them)
-    const limit = userPlan === Plan.FREE ? 5 : 30;
+    const limit = userPlan === Plan.FREE ? 5 : 100;
     
     // Adjust skip/take for FREE tier
     const skip = userPlan === Plan.FREE ? 0 : (page - 1) * limit;

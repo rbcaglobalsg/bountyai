@@ -3,7 +3,7 @@ import GithubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from './prisma';
-import { Plan } from '@/types';
+import { Plan, Role } from '@/types';
 import { compare } from 'bcryptjs';
 
 export const authOptions: NextAuthOptions = {
@@ -25,8 +25,8 @@ export const authOptions: NextAuthOptions = {
                     githubId: profile.id.toString(),
                     githubUsername: profile.login,
                     plan: Plan.FREE,
-                    role: isAdmin ? 'ADMIN' : 'USER',
-                };
+                    role: isAdmin ? Role.ADMIN : Role.USER,
+                } as any;
             },
         }),
         CredentialsProvider({
@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
 
                 const user = await prisma.user.findUnique({
                     where: { email: credentials.email }
-                });
+                }) as any;
 
                 if (!user || !user.password) return null;
 
@@ -54,26 +54,26 @@ export const authOptions: NextAuthOptions = {
                     role: user.role,
                     plan: user.plan,
                     githubUsername: user.githubUsername,
-                };
+                } as any;
             }
         })
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user }: any) {
             if (user) {
                 token.id = user.id;
-                token.role = (user as any).role;
-                token.plan = (user as any).plan;
-                token.githubUsername = (user as any).githubUsername;
+                token.role = user.role;
+                token.plan = user.plan;
+                token.githubUsername = user.githubUsername;
             }
             return token;
         },
-        async session({ session, token }) {
+        async session({ session, token }: any) {
             if (token && session.user) {
-                (session.user as any).id = token.id;
-                (session.user as any).role = token.role;
-                (session.user as any).plan = token.plan;
-                (session.user as any).githubUsername = token.githubUsername;
+                session.user.id = token.id;
+                session.user.role = token.role;
+                session.user.plan = token.plan;
+                session.user.githubUsername = token.githubUsername;
             }
             return session;
         },

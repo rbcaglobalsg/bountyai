@@ -38,7 +38,7 @@ export async function POST() {
             }
 
             // Upsert bounty with updated status/activity
-            await prisma.bounty.upsert({
+            await (prisma.bounty as any).upsert({
                 where: { url: bounty.url },
                 update: {
                     linkedPrCount: bounty.linkedPrCount,

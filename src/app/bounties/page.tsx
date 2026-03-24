@@ -20,6 +20,9 @@ interface Bounty {
     source: string;
     repoOwner: string | null;
     repoName: string | null;
+    matchScore?: number;
+    linkedPrCount?: number;
+    lastActivityAt?: string | null;
 }
 
 export default function Bounties() {
@@ -28,12 +31,15 @@ export default function Bounties() {
     const [bounties, setBounties] = useState<Bounty[]>([]);
     const [search, setSearch] = useState('');
     const [filterLang, setFilterLang] = useState('All');
+    const [sortBy, setSortBy] = useState('latest');
     const [loading, setLoading] = useState(true);
     const [crawling, setCrawling] = useState(false);
     const [crawlResult, setCrawlResult] = useState('');
     const [userPlan, setUserPlan] = useState<Plan>(Plan.FREE);
     const [showHintsId, setShowHintsId] = useState<string | null>(null);
     const [hintTitle, setHintTitle] = useState('');
+
+    const isFree = userPlan === Plan.FREE;
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -50,7 +56,19 @@ export default function Bounties() {
 
             const res = await fetch(`/api/bounties?${params.toString()}`);
             const data = await res.json();
-            setBounties(data.bounties || []);
+            
+            let fetchedBounties: Bounty[] = data.bounties || [];
+            
+            // Apply sorting locally
+            if (sortBy === 'amount') {
+                fetchedBounties.sort((a, b) => b.amount - a.amount);
+            } else if (sortBy === 'match' && !isFree) {
+                fetchedBounties.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+            } else {
+                // Latest is default (Prisma returns latest first usually)
+            }
+
+            setBounties(fetchedBounties);
             if (data.userPlan) setUserPlan(data.userPlan);
         } catch (error) {
             console.error('Failed to fetch bounties:', error);
@@ -85,7 +103,7 @@ export default function Bounties() {
         if (status === 'authenticated') {
             fetchBounties();
         }
-    }, [status, filterLang]);
+    }, [status, filterLang, sortBy]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -110,7 +128,7 @@ export default function Bounties() {
     if (status === 'loading') {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-gray-400">Loading...</div>
+                <Loader2 className="w-8 h-8 animate-spin text-green-400" />
             </div>
         );
     }
@@ -119,28 +137,37 @@ export default function Bounties() {
         'All', 'TypeScript', 'JavaScript', 'React', 'Python', 'Go', 'Rust', 'Java', 'Ruby', 'CSS',
     ];
 
-    const isFree = userPlan === Plan.FREE;
-
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-8">
-                <h1 className="text-2xl font-bold font-display">🎯 All Bounties</h1>
-                <button
-                    onClick={runCrawl}
-                    disabled={crawling}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20"
-                >
-                    {crawling ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                        <RefreshCw className="w-4 h-4" />
-                    )}
-                    {crawling ? 'Crawling...' : 'Scan for Bounties'}
-                </button>
+                <h1 className="text-2xl font-bold font-display text-white">🎯 All Bounties</h1>
+                <div className="flex items-center gap-4">
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 block p-2.5 transition-all outline-none"
+                    >
+                        <option value="latest">Latest First</option>
+                        <option value="amount">Highest Reward</option>
+                        {!isFree && <option value="match">Best Match</option>}
+                    </select>
+                    <button
+                        onClick={runCrawl}
+                        disabled={crawling}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-900 text-white font-semibold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20"
+                    >
+                        {crawling ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                            <RefreshCw className="w-4 h-4" />
+                        )}
+                        {crawling ? 'Crawling...' : 'Scan for Bounties'}
+                    </button>
+                </div>
             </div>
 
             {crawlResult && (
-                <div className="bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-3 mb-6 text-green-400 text-sm flex items-center gap-2">
+                <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-4 py-3 mb-6 text-green-400 text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
                     <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                     ✓ {crawlResult}
                 </div>
@@ -181,7 +208,7 @@ export default function Bounties() {
                         onClick={() => setFilterLang(lang)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${filterLang === lang
                                 ? 'bg-green-500 text-black shadow-lg shadow-green-500/20'
-                                : 'bg-gray-900 text-gray-400 border border-gray-800 hover:border-gray-700 hover:text-white'
+                                : 'bg-gray-800 text-gray-400 border border-gray-700 hover:border-gray-600 hover:text-white'
                             }`}
                     >
                         {lang}
@@ -194,8 +221,8 @@ export default function Bounties() {
                     Showing <span className="text-white font-medium">{bounties.length}</span> bounties {isFree && '(Free Tier)'}
                 </p>
                 {!isFree && (
-                     <span className="text-xs bg-gray-800 text-gray-400 px-2 py-1 rounded border border-gray-700">
-                        Tier: <span className="text-green-400 font-bold">{userPlan}</span>
+                     <span className="text-xs bg-gray-800 text-gray-400 px-3 py-1.5 rounded-lg border border-gray-700">
+                        Tier: <span className="text-green-400 font-bold uppercase">{userPlan}</span>
                      </span>
                 )}
             </div>
@@ -203,7 +230,7 @@ export default function Bounties() {
             {loading ? (
                 <div className="text-center py-32">
                     <Loader2 className="w-10 h-10 animate-spin text-green-500 mx-auto mb-4" />
-                    <p className="text-gray-400 animate-pulse">Fetching fresh bounties for you...</p>
+                    <p className="text-gray-400 animate-pulse font-medium">Fetching fresh bounties for you...</p>
                 </div>
             ) : bounties.length === 0 ? (
                 <div className="text-center py-32 bg-gray-900/30 border border-dashed border-gray-800 rounded-3xl">
@@ -231,14 +258,14 @@ export default function Bounties() {
                                 difficulty={bounty.difficulty}
                                 estimatedHours={bounty.estimatedHours}
                                 competitors={bounty.competitors}
-                                matchScore={(bounty as any).matchScore}
+                                matchScore={bounty.matchScore}
                                 url={bounty.url}
                                 source={bounty.source}
                                 repoOwner={bounty.repoOwner || undefined}
                                 repoName={bounty.repoName || undefined}
                                 userPlan={userPlan}
-                                linkedPrCount={(bounty as any).linkedPrCount}
-                                lastActivityAt={(bounty as any).lastActivityAt}
+                                linkedPrCount={bounty.linkedPrCount}
+                                lastActivityAt={bounty.lastActivityAt}
                                 onStartSolving={handleStartSolving}
                             />
                         ))}
@@ -250,13 +277,13 @@ export default function Bounties() {
                                 <div className="w-20 h-20 bg-green-500/10 border border-green-500/20 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-inner shadow-green-500/10">
                                     <Lock className="w-10 h-10 text-green-400" />
                                 </div>
-                                <h3 className="text-3xl font-bold mb-4 font-display">Unlock <span className="text-green-400">5,000+</span> More Bounties</h3>
+                                <h3 className="text-3xl font-bold mb-4 font-display text-white">Unlock <span className="text-green-400">5,000+</span> More Bounties</h3>
                                 <p className="text-gray-400 mb-10 max-w-lg mx-auto leading-relaxed">
                                     Upgrade to <b>PRO</b> to see thousands of open bounties, get AI matching scores, difficulty analysis, and start earning today.
                                 </p>
                                 <button 
                                     onClick={() => router.push('/profile')}
-                                    className="bg-green-500 hover:bg-green-600 text-black font-bold px-10 py-4 rounded-xl transition-all shadow-xl shadow-green-500/20 scale-100 hover:scale-105"
+                                    className="bg-green-500 hover:bg-green-600 text-black font-bold px-10 py-4 rounded-xl transition-all shadow-xl shadow-green-500/20 scale-100 hover:scale-105 font-display"
                                 >
                                     Upgrade Now
                                 </button>

@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { crawlGitHubBounties } from '@/lib/crawler';
+import { crawlAllBounties } from '@/lib/crawler';
 
 export async function POST() {
     try {
         const startTime = Date.now();
-        const bounties = await crawlGitHubBounties();
+        const bounties = await crawlAllBounties();
 
         let newAdded = 0;
 

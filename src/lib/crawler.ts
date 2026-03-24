@@ -26,6 +26,30 @@ interface CrawledBounty {
     lastActivityAt: Date;
 }
 
+export async function crawlAllBounties(): Promise<CrawledBounty[]> {
+    const [github, algora, issuehunt] = await Promise.all([
+        safeCrawl(crawlGitHubBounties),
+        safeCrawl(crawlAlgoraBounties),
+        safeCrawl(crawlIssueHuntBounties),
+    ]);
+
+    const all = [...github, ...algora, ...issuehunt];
+    
+    // Global deduplication by URL
+    return all.filter(
+        (b, i, arr) => arr.findIndex((x) => x.url === b.url) === i
+    );
+}
+
+async function safeCrawl(fn: () => Promise<CrawledBounty[]>): Promise<CrawledBounty[]> {
+    try {
+        return await fn();
+    } catch (error) {
+        console.error(`Crawl provider failed: ${fn.name}`, error);
+        return [];
+    }
+}
+
 export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
     const bounties: CrawledBounty[] = [];
 
@@ -100,6 +124,65 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
     );
 
     return unique;
+}
+
+export async function crawlAlgoraBounties(): Promise<CrawledBounty[]> {
+    try {
+        const response = await fetch('https://algora.io/api/bounties?status=active&limit=50');
+        if (!response.ok) return [];
+        
+        const data = await response.json();
+        const items = data.items || data.bounties || [];
+        
+        return items.map((item: any) => ({
+            title: item.title || item.issue?.title,
+            description: item.description || item.issue?.body || '',
+            url: item.url || `https://algora.io/bounties/${item.id}`,
+            amount: (item.reward_amount || item.amount || 0) * 100,
+            source: 'algora',
+            repoOwner: item.issue?.repository?.owner?.login || '',
+            repoName: item.issue?.repository?.name || '',
+            issueNumber: item.issue?.number || 0,
+            labels: item.labels || [],
+            languages: item.languages || [],
+            postedAt: new Date(item.created_at || Date.now()),
+            linkedPrCount: item.linked_pr_count || 0,
+            lastActivityAt: new Date(item.updated_at || Date.now()),
+        }));
+    } catch (error) {
+        console.error('Algora crawl failed:', error);
+        return [];
+    }
+}
+
+export async function crawlIssueHuntBounties(): Promise<CrawledBounty[]> {
+    try {
+        // IssueHunt often requires some specific headers or uses a different endpoint structure
+        const response = await fetch('https://issuehunt.io/api/v1/issues?status=open&limit=30');
+        if (!response.ok) return [];
+        
+        const data = await response.json();
+        const items = data.issues || data.items || [];
+        
+        return items.map((item: any) => ({
+            title: item.title,
+            description: item.description || '',
+            url: `https://issuehunt.io/issues/${item.id}`,
+            amount: (item.bounty_amount || 0) * 100,
+            source: 'issuehunt',
+            repoOwner: item.repository?.owner?.login || '',
+            repoName: item.repository?.name || '',
+            issueNumber: item.number || 0,
+            labels: item.labels || [],
+            languages: item.languages || [],
+            postedAt: new Date(item.created_at || Date.now()),
+            linkedPrCount: 0, // Not easily available via this API
+            lastActivityAt: new Date(item.updated_at || Date.now()),
+        }));
+    } catch (error) {
+        console.error('IssueHunt crawl failed:', error);
+        return [];
+    }
 }
 
 function extractAmount(text: string): number {

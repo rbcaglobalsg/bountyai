@@ -72,7 +72,11 @@ export default function BountyCard({
                         </span>
                     ))}
                 </div>
-                <div className="text-xs font-bold text-gray-500 flex items-center gap-1 uppercase tracking-widest px-2 py-1 bg-gray-950 rounded-lg border border-gray-800">
+                <div className={`text-[10px] font-bold flex items-center gap-1 uppercase tracking-widest px-2 py-0.5 rounded-lg border ${
+                    source.toLowerCase() === 'github' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                    source.toLowerCase() === 'algora' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                    'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                }`}>
                     <BarChart3 className="w-3 h-3" />
                     {source}
                 </div>

@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 
 function getOpenAIClient(): OpenAI {
     const apiKey = process.env.OPENAI_API_KEY;
+    console.log('[DEBUG] OPENAI_API_KEY present:', !!apiKey);
     if (!apiKey) {
         throw new Error('OPENAI_API_KEY is not set');
     }

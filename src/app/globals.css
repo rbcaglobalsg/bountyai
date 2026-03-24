@@ -4,3 +4,16 @@ body {
   background-color: #030712;
   color: #ffffff;
 }
+
+button, 
+select, 
+input[type="range"],
+a {
+  cursor: pointer;
+}
+
+/* Ensure disabled buttons don't have pointer */
+button:disabled,
+button[disabled] {
+  cursor: not-allowed;
+}

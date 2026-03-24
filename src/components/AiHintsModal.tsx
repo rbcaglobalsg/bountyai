@@ -60,7 +60,7 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                         <div className="py-20 text-center">
                             <Loader2 className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-6" />
                             <h3 className="text-lg font-bold text-white mb-2">Analyzing Repo & Issue...</h3>
-                            <p className="text-gray-400 text-sm">Gemini AI is generating your custom solution path.</p>
+                            <p className="text-gray-400 text-sm">BountyAI is generating your custom solution path.</p>
                         </div>
                     ) : error ? (
                         <div className="py-12 text-center">

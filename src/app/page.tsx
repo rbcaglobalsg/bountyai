@@ -99,7 +99,7 @@ export default function Home() {
         <div className="inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-5 py-2 mb-10">
           <Zap className="w-4 h-4 text-green-400 fill-green-400/20" />
           <span className="text-green-400 text-sm font-bold tracking-tight">
-            NEW: Gemini Powered Matching
+            NEW: BountyAI Powered Matching
           </span>
         </div>
 

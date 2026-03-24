@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
     DollarSign,
     Crosshair,
@@ -31,6 +31,7 @@ export default function Dashboard() {
     const router = useRouter();
     const [bounties, setBounties] = useState<Bounty[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetched, setFetched] = useState(false);
 
     useEffect(() => {
         if (status === 'unauthenticated') {
@@ -39,26 +40,22 @@ export default function Dashboard() {
     }, [status, router]);
 
     useEffect(() => {
-        if (status === 'authenticated') {
-            fetchBounties();
+        if (status === 'authenticated' && !fetched) {
+            setFetched(true);
+            fetch('/api/bounties')
+                .then((res) => res.json())
+                .then((data) => {
+                    setBounties(data.bounties || []);
+                    setLoading(false);
+                })
+                .catch(() => setLoading(false));
         }
-    }, [status]);
-
-    const fetchBounties = async () => {
-        try {
-            const res = await fetch('/api/bounties?limit=6');
-            const data = await res.json();
-            setBounties(data.bounties || []);
-        } catch (error) {
-            console.error('Failed to fetch bounties:', error);
-        }
-        setLoading(false);
-    };
+    }, [status, fetched]);
 
     if (status === 'loading') {
         return (
             <div className="min-h-screen flex items-center justify-center">
-                <div className="text-gray-400">Loading...</div>
+                <Loader2 className="w-8 h-8 animate-spin text-green-400" />
             </div>
         );
     }
@@ -106,7 +103,7 @@ export default function Dashboard() {
                 </div>
             </div>
 
-            {/* Recommended Bounties */}
+            {/* Bounties */}
             <h2 className="text-xl font-bold mb-4">🎯 Latest Bounties</h2>
 
             {loading ? (
@@ -117,9 +114,6 @@ export default function Dashboard() {
             ) : bounties.length === 0 ? (
                 <div className="text-center py-12 bg-gray-800 border border-gray-700 rounded-xl">
                     <p className="text-gray-400 text-lg mb-4">No bounties yet</p>
-                    <p className="text-gray-500 mb-6">
-                        Go to Bounties page and click "Scan for Bounties" to start
-                    </p>
                     <button
                         onClick={() => router.push('/bounties')}
                         className="bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-3 rounded-xl transition"

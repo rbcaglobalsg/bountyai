@@ -6,6 +6,8 @@ import { generateHints } from '@/lib/gemini';
 import { getRepositoryContext } from '@/lib/github';
 import { Plan } from '@/types';
 
+export const maxDuration = 60;
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

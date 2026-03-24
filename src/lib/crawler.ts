@@ -27,27 +27,7 @@ interface CrawledBounty {
 }
 
 export async function crawlAllBounties(): Promise<CrawledBounty[]> {
-    const [github, algora, issuehunt] = await Promise.all([
-        safeCrawl(crawlGitHubBounties),
-        safeCrawl(crawlAlgoraBounties),
-        safeCrawl(crawlIssueHuntBounties),
-    ]);
-
-    const all = [...github, ...algora, ...issuehunt];
-    
-    // Global deduplication by URL
-    return all.filter(
-        (b, i, arr) => arr.findIndex((x) => x.url === b.url) === i
-    );
-}
-
-async function safeCrawl(fn: () => Promise<CrawledBounty[]>): Promise<CrawledBounty[]> {
-    try {
-        return await fn();
-    } catch (error) {
-        console.error(`Crawl provider failed: ${fn.name}`, error);
-        return [];
-    }
+    return crawlGitHubBounties();
 }
 
 export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
@@ -56,15 +36,14 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
     // 바운티 관련 라벨로 검색
     const queries = [
         'label:bounty state:open',
-        'label:💰 state:open',
-        'label:"help wanted" label:bounty state:open',
-        '"bounty" "$" in:body state:open is:issue',
+        'label:algora state:open',
+        'label:issuehunt state:open',
     ];
 
     for (const query of queries) {
         try {
             const response = await fetch(
-                `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=created&order=desc&per_page=30`,
+                `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=created&order=desc&per_page=10`,
                 {
                     headers: {
                         Accept: 'application/vnd.github.v3+json',
@@ -94,15 +73,18 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
                 // 언어 가져오기
                 const languages = await getRepoLanguages(repoOwner, repoName);
                 
-                // 연결된 PR 개수 가져오기 (실제 보상 진행도를 알 수 있는 핵심 지표)
+                // 연결된 PR 개수 가져오기
                 const linkedPrCount = await getLinkedPrCount(repoOwner, repoName, issue.number);
+
+                // 소스 분석 (GitHub 이슈더라도 Algora/IssueHunt 라벨이 있으면 해당 소스로 표시)
+                const source = detectSource(issue);
 
                 bounties.push({
                     title: issue.title,
                     description: (issue.body || '').slice(0, 2000),
                     url: issue.html_url,
                     amount: amount * 100, // 센트 단위
-                    source: 'github',
+                    source,
                     repoOwner,
                     repoName,
                     issueNumber: issue.number,
@@ -126,65 +108,6 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
     return unique;
 }
 
-export async function crawlAlgoraBounties(): Promise<CrawledBounty[]> {
-    try {
-        const response = await fetch('https://algora.io/api/bounties?status=active&limit=50');
-        if (!response.ok) return [];
-        
-        const data = await response.json();
-        const items = data.items || data.bounties || [];
-        
-        return items.map((item: any) => ({
-            title: item.title || item.issue?.title,
-            description: item.description || item.issue?.body || '',
-            url: item.url || `https://algora.io/bounties/${item.id}`,
-            amount: (item.reward_amount || item.amount || 0) * 100,
-            source: 'algora',
-            repoOwner: item.issue?.repository?.owner?.login || '',
-            repoName: item.issue?.repository?.name || '',
-            issueNumber: item.issue?.number || 0,
-            labels: item.labels || [],
-            languages: item.languages || [],
-            postedAt: new Date(item.created_at || Date.now()),
-            linkedPrCount: item.linked_pr_count || 0,
-            lastActivityAt: new Date(item.updated_at || Date.now()),
-        }));
-    } catch (error) {
-        console.error('Algora crawl failed:', error);
-        return [];
-    }
-}
-
-export async function crawlIssueHuntBounties(): Promise<CrawledBounty[]> {
-    try {
-        // IssueHunt often requires some specific headers or uses a different endpoint structure
-        const response = await fetch('https://issuehunt.io/api/v1/issues?status=open&limit=30');
-        if (!response.ok) return [];
-        
-        const data = await response.json();
-        const items = data.issues || data.items || [];
-        
-        return items.map((item: any) => ({
-            title: item.title,
-            description: item.description || '',
-            url: `https://issuehunt.io/issues/${item.id}`,
-            amount: (item.bounty_amount || 0) * 100,
-            source: 'issuehunt',
-            repoOwner: item.repository?.owner?.login || '',
-            repoName: item.repository?.name || '',
-            issueNumber: item.number || 0,
-            labels: item.labels || [],
-            languages: item.languages || [],
-            postedAt: new Date(item.created_at || Date.now()),
-            linkedPrCount: 0, // Not easily available via this API
-            lastActivityAt: new Date(item.updated_at || Date.now()),
-        }));
-    } catch (error) {
-        console.error('IssueHunt crawl failed:', error);
-        return [];
-    }
-}
-
 function extractAmount(text: string): number {
     const patterns = [
         /\$(\d{1,3}(?:,\d{3})*(?:\.\d{2})?)/g,
@@ -205,6 +128,19 @@ function extractAmount(text: string): number {
     }
 
     return maxAmount;
+}
+
+function detectSource(issue: GitHubIssue): string {
+    const labels = issue.labels.map((l) => l.name.toLowerCase());
+    const body = (issue.body || '').toLowerCase();
+
+    if (labels.includes('algora') || body.includes('managed by algora')) {
+        return 'algora';
+    }
+    if (labels.includes('issuehunt') || body.includes('issued on issuehunt') || body.includes('issuehunt.io')) {
+        return 'issuehunt';
+    }
+    return 'github';
 }
 
 async function getRepoLanguages(

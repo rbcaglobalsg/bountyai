@@ -153,7 +153,7 @@ export default function Home() {
                     <Mail className="absolute left-4 top-3.5 w-5 h-5 text-gray-500" />
                     <input 
                       type="email" 
-                      placeholder="admin@rbcaglobal.com"
+                      placeholder="email@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full bg-black border border-gray-800 rounded-xl py-3.5 pl-12 pr-4 focus:border-green-500 focus:outline-none transition-all"

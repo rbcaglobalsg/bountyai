@@ -69,7 +69,7 @@ export async function POST() {
 
         await prisma.crawlLog.create({
             data: {
-                source: 'github',
+                source: 'unified',
                 totalFound: bounties.length,
                 newAdded,
                 duration,

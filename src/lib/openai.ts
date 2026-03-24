@@ -1,10 +1,14 @@
 import OpenAI from 'openai';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Load .env explicitly for extra reliability on some systems
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 function getOpenAIClient(): OpenAI {
     const apiKey = process.env.OPENAI_API_KEY;
-    console.log('[DEBUG] OPENAI_API_KEY present:', !!apiKey);
     if (!apiKey) {
-        throw new Error('OPENAI_API_KEY is not set');
+        throw new Error('OPENAI_API_KEY is not set. Please check your .env file.');
     }
     return new OpenAI({ apiKey });
 }

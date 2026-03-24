@@ -11,7 +11,7 @@ export async function GET(
 ) {
     const session = await getServerSession(authOptions);
     const userPlan = (session?.user?.plan as Plan) || Plan.FREE;
-
+ 
     if (userPlan !== Plan.ELITE) {
         return NextResponse.json(
             { error: 'Elite plan required for AI hints' },

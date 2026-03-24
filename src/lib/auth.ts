@@ -11,6 +11,7 @@ export const authOptions: NextAuthOptions = {
             clientId: process.env.GITHUB_ID!,
             clientSecret: process.env.GITHUB_SECRET!,
             profile(profile) {
+                const isAdmin = profile.email === process.env.ADMIN_EMAIL;
                 return {
                     id: profile.id.toString(),
                     name: profile.name || profile.login,
@@ -19,6 +20,7 @@ export const authOptions: NextAuthOptions = {
                     githubId: profile.id.toString(),
                     githubUsername: profile.login,
                     plan: Plan.FREE,
+                    role: isAdmin ? 'ADMIN' : 'USER',
                 };
             },
         }),
@@ -29,6 +31,7 @@ export const authOptions: NextAuthOptions = {
                 (session.user as any).id = user.id;
                 (session.user as any).githubUsername = (user as any).githubUsername;
                 (session.user as any).plan = (user as any).plan;
+                (session.user as any).role = (user as any).role;
             }
             return session;
         },

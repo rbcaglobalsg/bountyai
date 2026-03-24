@@ -26,6 +26,7 @@ model User {
   
   // 구독
   plan          Plan      @default(FREE)
+  role          Role      @default(USER)
   stripeId      String?
   
   // 관계
@@ -42,6 +43,11 @@ enum Plan {
   FREE
   PRO
   ELITE
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 // ── NextAuth ────────────────────────

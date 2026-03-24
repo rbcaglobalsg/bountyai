@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Save, Zap, Crown, Loader2, Check } from 'lucide-react';
+import { Save, Zap, Crown, Loader2, Check, Shield } from 'lucide-react';
 import { Plan } from '@/types';
 
 const ALL_SKILLS = [
@@ -53,6 +53,7 @@ export default function Profile() {
     const [minBounty, setMinBounty] = useState(50);
     const [maxHours, setMaxHours] = useState(10);
     const [userPlan, setUserPlan] = useState<Plan>(Plan.FREE);
+    const [role, setRole] = useState<string>('USER');
     const [saved, setSaved] = useState(false);
     const [upgrading, setUpgrading] = useState<string | null>(null);
 
@@ -66,6 +67,7 @@ export default function Profile() {
                     setMinBounty(data.minBounty || 50);
                     setMaxHours(data.maxHours || 10);
                     setUserPlan(data.plan || Plan.FREE);
+                    setRole(data.role || 'USER');
                 }
             } catch (error) {
                 console.error('Failed to fetch profile:', error);
@@ -106,6 +108,23 @@ export default function Profile() {
             setTimeout(() => setSaved(false), 3000);
         } catch (error) {
             console.error('Failed to save profile:', error);
+        }
+    };
+
+    const handleAdminPlanChange = async (newPlan: Plan) => {
+        try {
+            const res = await fetch('/api/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ skills, minBounty, maxHours, plan: newPlan }),
+            });
+            if (res.ok) {
+                setUserPlan(newPlan);
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2000);
+            }
+        } catch (error) {
+            console.error('Admin plan change failed:', error);
         }
     };
 
@@ -218,6 +237,35 @@ export default function Profile() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Admin Test Mode */}
+                    {role === 'ADMIN' && (
+                        <div className="bg-red-500/5 border border-red-500/10 rounded-2xl p-8 shadow-sm">
+                            <h2 className="text-lg font-bold mb-6 flex items-center gap-2 text-red-500">
+                                <Shield className="w-5 h-5" />
+                                Super Admin: Testing Mode
+                            </h2>
+                            <p className="text-gray-400 text-xs mb-6 font-medium">
+                                Switch between feature tiers instantly. This bypasses Stripe for local testing.
+                            </p>
+
+                            <div className="grid grid-cols-3 gap-3">
+                                {[Plan.FREE, Plan.PRO, Plan.ELITE].map((p) => (
+                                    <button
+                                        key={p}
+                                        onClick={() => handleAdminPlanChange(p)}
+                                        className={`px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all border ${
+                                            userPlan === p 
+                                            ? 'bg-red-500 text-white border-red-400 shadow-lg shadow-red-500/20' 
+                                            : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-red-500/30'
+                                        }`}
+                                    >
+                                        {p}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                     {/* Save */}
                     <div className="flex justify-end text-white">

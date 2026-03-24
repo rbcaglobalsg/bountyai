@@ -138,10 +138,27 @@ export default function Profile() {
                 <div className="lg:col-span-2 space-y-6">
                     {/* Skills */}
                     <div className="bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-sm">
-                        <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
-                            <Check className="w-5 h-5 text-green-500" />
-                            Your Skills
-                        </h2>
+                        <div className="flex justify-between items-center mb-4">
+                            <h2 className="text-xl font-bold flex items-center gap-2 text-white">
+                                <Check className="w-5 h-5 text-green-500" />
+                                Your Skills
+                            </h2>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setSkills(ALL_SKILLS)}
+                                    className="text-[10px] font-bold uppercase tracking-widest text-blue-400 hover:text-blue-300 transition-colors"
+                                >
+                                    Select All
+                                </button>
+                                <span className="text-gray-700">|</span>
+                                <button
+                                    onClick={() => setSkills([])}
+                                    className="text-[10px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors"
+                                >
+                                    Clear All
+                                </button>
+                            </div>
+                        </div>
                         <p className="text-gray-400 text-sm mb-6">
                             AI uses these to match you with the best bounties.
                         </p>

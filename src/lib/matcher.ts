@@ -52,8 +52,19 @@ export async function matchBountyToUsers(
         }
 
         // 3. 난이도 매칭 (최대 20점)
-        if (bounty.estimatedHours && bounty.estimatedHours <= user.maxHours) {
-            score += 20;
+        // User's maxHours is already used, but let's also give bonus for matching difficulty
+        if (bounty.difficulty) {
+            const difficultyMap: Record<string, number> = { EASY: 1, MEDIUM: 2, HARD: 3, EXPERT: 4 };
+            const bountyDiff = difficultyMap[bounty.difficulty] || 2;
+            
+            // Assume users with higher skills prefer harder bounties? 
+            // For now, just if it's within their time limit
+            if (bounty.estimatedHours && bounty.estimatedHours <= user.maxHours) {
+                score += 20;
+                reasons.push(`소요 시간 적합 (${bounty.estimatedHours}h, 난이도: ${bounty.difficulty})`);
+            }
+        } else if (bounty.estimatedHours && bounty.estimatedHours <= user.maxHours) {
+            score += 15;
             reasons.push(`소요 시간 적합: ${bounty.estimatedHours}시간`);
         }
 

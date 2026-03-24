@@ -15,6 +15,24 @@ export async function POST() {
             });
 
             if (!existing) {
+                // AI 분석 (난이도, 예상 시간) - Pro/Elite 핵심 데이터
+                let aiData: { difficulty: string; estimatedHours: number; skills: string[]; summary: string } = { 
+                    difficulty: 'MEDIUM', 
+                    estimatedHours: 4, 
+                    skills: [], 
+                    summary: '' 
+                };
+                try {
+                    const { analyzeBounty } = await import('@/lib/openai');
+                    aiData = await analyzeBounty(
+                        bounty.title, 
+                        bounty.description, 
+                        bounty.languages
+                    );
+                } catch (e) {
+                    console.error('AI Analysis failed for bounty:', bounty.title, e);
+                }
+
                 await prisma.bounty.create({
                     data: {
                         title: bounty.title,
@@ -28,6 +46,9 @@ export async function POST() {
                         labels: bounty.labels,
                         languages: bounty.languages,
                         postedAt: bounty.postedAt,
+                        difficulty: aiData.difficulty as any,
+                        estimatedHours: aiData.estimatedHours,
+                        aiAnalysis: JSON.stringify(aiData),
                     },
                 });
                 newAdded++;

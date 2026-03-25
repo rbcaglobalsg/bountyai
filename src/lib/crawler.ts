@@ -188,58 +188,58 @@ async function getIssueMetrics(
     authorLogin?: string
 ): Promise<{ linkedPrCount: number, competitors: number }> {
     try {
-        const response = await fetch(
-            `https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}/timeline`,
-            {
+        const [timelineRes, commentsRes] = await Promise.all([
+            fetch(`https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}/timeline`, {
                 headers: {
                     Accept: 'application/vnd.github.mockingbird-preview+json',
-                    ...(process.env.GITHUB_TOKEN
-                        ? { Authorization: `token ${process.env.GITHUB_TOKEN}` }
-                        : {}),
+                    ...(process.env.GITHUB_TOKEN ? { Authorization: `token ${process.env.GITHUB_TOKEN}` } : {}),
                 },
                 signal: AbortSignal.timeout(8000)
-            }
-        );
+            }),
+            fetch(`https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}/comments?per_page=100`, {
+                headers: {
+                    Accept: 'application/vnd.github.v3+json',
+                    ...(process.env.GITHUB_TOKEN ? { Authorization: `token ${process.env.GITHUB_TOKEN}` } : {}),
+                },
+                signal: AbortSignal.timeout(8000)
+            })
+        ]);
 
-        if (!response.ok) return { linkedPrCount: 0, competitors: 0 };
-
-        const data = await response.json();
-        const prEvents = data.filter((e: any) => 
-            e.event === 'cross-referenced' && 
-            e.source?.type === 'issue' && 
-            e.source?.issue?.pull_request
-        );
-
-        const commentEvents = data.filter((e: any) => !e.event && e.body !== undefined);
-        const attemptingUsers = new Set<string>();
-        
-        for (const c of commentEvents) {
-            const body = (c.body || '').toLowerCase();
-            const actor = c.actor?.login || c.user?.login;
-            
-            // Exclude the issue author from competitors
-            if (actor && actor !== authorLogin) {
-                if (body.includes('/attempt') || body.includes('work on this') || body.includes('take a shot')) {
-                    attemptingUsers.add(actor);
-                }
-            }
+        let linkedPrCount = 0;
+        if (timelineRes.ok) {
+            const data = await timelineRes.json();
+            const prEvents = data.filter((e: any) => 
+                e.event === 'cross-referenced' && 
+                e.source?.type === 'issue' && 
+                e.source?.issue?.pull_request
+            );
+            linkedPrCount = prEvents.length;
         }
-        
-        let competitors = attemptingUsers.size;
-        
-        // If no explicit attempts are found but there are comments from others, use a rough heuristic
-        if (competitors === 0) {
+
+        let competitors = 0;
+        if (commentsRes.ok) {
+            const commentsData = await commentsRes.json();
+            const attemptingUsers = new Set<string>();
             const uniqueCommenters = new Set<string>();
-            commentEvents.forEach((c: any) => {
-                const actor = c.actor?.login || c.user?.login;
-                if (actor && actor !== authorLogin && !actor?.includes('bot')) {
+            
+            for (const c of commentsData) {
+                const body = (c.body || '').toLowerCase();
+                const actor = c.user?.login;
+                
+                if (actor && actor !== authorLogin && !actor.includes('bot')) {
                     uniqueCommenters.add(actor);
+                    if (body.includes('/attempt') || body.includes('work on this') || body.includes('take a shot')) {
+                        attemptingUsers.add(actor);
+                    }
                 }
-            });
-            competitors = Math.floor(uniqueCommenters.size / 3);
+            }
+            
+            competitors = attemptingUsers.size > 0 
+                ? attemptingUsers.size 
+                : (uniqueCommenters.size > 0 ? Math.min(1, Math.floor(uniqueCommenters.size / 2) || 1) : 0);
         }
 
-        return { linkedPrCount: prEvents.length, competitors };
+        return { linkedPrCount, competitors };
     } catch {
         return { linkedPrCount: 0, competitors: 0 };
     }

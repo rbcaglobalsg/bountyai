@@ -43,6 +43,11 @@ export async function POST() {
             await (prisma.bounty as any).upsert({
                 where: { url: bounty.url },
                 update: {
+                    title: bounty.title,
+                    source: bounty.source,
+                    amount: bounty.amount,
+                    languages: bounty.languages,
+                    labels: bounty.labels,
                     linkedPrCount: bounty.linkedPrCount,
                     competitors: bounty.competitors,
                     lastActivityAt: bounty.lastActivityAt,

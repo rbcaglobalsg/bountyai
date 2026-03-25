@@ -17,7 +17,13 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
     useEffect(() => {
         const fetchHints = async () => {
             try {
-                const res = await fetch(`/api/bounties/${bountyId}/hints`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout
+                
+                const res = await fetch(`/api/bounties/${bountyId}/hints`, {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
                 
                 if (!res.ok) {
                     let errorMsg = 'Failed to fetch AI hints';

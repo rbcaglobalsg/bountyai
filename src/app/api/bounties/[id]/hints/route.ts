@@ -40,7 +40,11 @@ export async function GET(
         // [MOD] Read lang and model from searchParams
         const searchParams = request.nextUrl.searchParams;
         const lang = searchParams.get('lang') || 'ko';
-        const modelName = searchParams.get('model') || 'gemini-3.1-pro-preview';
+        let modelName = searchParams.get('model') || 'gemini-3.1-pro-preview';
+
+        // [SAFETY] Intercept stale frontend state from React Hot Reload
+        if (modelName === 'gemini-3.1-pro') modelName = 'gemini-3.1-pro-preview';
+        if (modelName === 'gemini-3-flash') modelName = 'gemini-3-flash-preview';
 
         // Check if hints already saved in a submission or if we should generate fresh
         let submission = await prisma.submission.findUnique({

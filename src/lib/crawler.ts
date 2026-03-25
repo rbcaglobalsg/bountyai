@@ -231,36 +231,26 @@ async function getIssueMetrics(
                 const actor = c.user?.login || '';
                 
                 if (actor && actor !== authorLogin) {
-                    if (!actor.includes('bot')) {
-                        uniqueCommenters.add(actor);
-                        if (
-                            body.includes('/attempt') || 
-                            body.includes('work on this') || 
-                            body.includes('working on it') || 
-                            body.includes('take a shot') ||
-                            body.includes('created a pr') ||
-                            body.includes('fix this')
-                        ) {
-                            attemptingUsers.add(actor);
-                        }
-                    } else {
+                    if (actor.includes('bot')) {
                         // Check bot messages for assignment confirmations
                         if (
                             body.includes('started working') || 
-                            body.includes('attempting this') || 
+                            body.includes('attempting') || 
                             body.includes('opened a pull request') || 
                             body.includes('submitted a pull') || 
                             body.includes('rewarded')
                         ) {
                             attemptingUsers.add(`bot-reported-${c.id}`);
                         }
+                    } else {
+                        // Aggressive: Any human commenter (other than the author) is considered a competitor
+                        // because Elite users expect completely untapped, silent bounties for the Fresh filter.
+                        uniqueCommenters.add(actor);
                     }
                 }
             }
             
-            competitors = attemptingUsers.size > 0 
-                ? attemptingUsers.size 
-                : (uniqueCommenters.size > 0 ? Math.min(1, Math.floor(uniqueCommenters.size / 2) || 1) : 0);
+            competitors = attemptingUsers.size + uniqueCommenters.size;
         }
 
         // Ensure competitors is at least the number of linked PRs

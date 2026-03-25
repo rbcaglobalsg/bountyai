@@ -22,7 +22,8 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
                 headers: { 
                     'User-Agent': 'BountyAI-Agent',
                     ...(process.env.GITHUB_TOKEN ? { 'Authorization': `token ${process.env.GITHUB_TOKEN}` } : {})
-                }
+                },
+                signal: AbortSignal.timeout(8000)
             });
             
             if (repoRes.ok) {
@@ -34,7 +35,8 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
                     headers: { 
                         'User-Agent': 'BountyAI-Agent',
                         ...(process.env.GITHUB_TOKEN ? { 'Authorization': `token ${process.env.GITHUB_TOKEN}` } : {})
-                    }
+                    },
+                    signal: AbortSignal.timeout(10000) // Slightly longer for the massive tree
                 });
                 
                 if (treeRes.ok) {
@@ -64,7 +66,8 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
                     'User-Agent': 'BountyAI-Agent',
                     'Accept': 'application/vnd.github.v3.raw',
                     ...(process.env.GITHUB_TOKEN ? { 'Authorization': `token ${process.env.GITHUB_TOKEN}` } : {})
-                }
+                },
+                signal: AbortSignal.timeout(8000)
             });
             if (readmeRes.ok) {
                 readme = await readmeRes.text();

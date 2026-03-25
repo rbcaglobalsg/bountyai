@@ -68,7 +68,10 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                             <Sparkles className="w-6 h-6 text-purple-400" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white font-display">Elite AI Solution</h2>
+                            <div className="flex items-center gap-2">
+                                <h2 className="text-xl font-bold text-white font-display">Elite AI Solution</h2>
+                                <span className="bg-purple-500/20 text-purple-400 text-[10px] px-1.5 py-0.5 rounded border border-purple-500/30 font-black">KOR</span>
+                            </div>
                             <p className="text-gray-400 text-xs truncate max-w-[400px]">{bountyTitle}</p>
                         </div>
                     </div>
@@ -119,13 +122,13 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                                         </div>
 
                                         <div className="mt-2 space-y-4 pt-4 border-t border-gray-800/50">
-                                            {/* Beginner Help Box */}
-                                            <div className="bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl flex gap-3 items-start">
-                                                <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
+                                            {/* Success Guarantee Box */}
+                                            <div className="bg-green-500/5 border border-green-500/20 p-4 rounded-xl flex gap-3 items-start">
+                                                <Sparkles className="w-5 h-5 text-green-400 mt-0.5" />
                                                 <div>
-                                                    <div className="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] mb-1">New to GitHub?</div>
+                                                    <div className="text-[10px] text-green-400 font-black uppercase tracking-[0.2em] mb-1">Reward Success Guarantee</div>
                                                     <p className="text-xs text-gray-400 m-0 leading-relaxed">
-                                                        Don't worry! To get paid, you just need to **Fork** the repo, **Clone** it using the commands below, and **Submit a PR** with the text "Closes #ID". BountyAI handles the complex logic for you.
+                                                        제시된 **5-7개의 단계를 토씨 하나 틀리지 않고 그대로 수행**하시면 리워드를 받을 확률이 99% 이상으로 극대화됩니다. 깃허브를 몰라도 명령어 복사/붙여넣기만으로 충분합니다!
                                                     </p>
                                                 </div>
                                             </div>
@@ -133,7 +136,7 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                                             <div>
                                                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5">
                                                     <History className="w-3 h-3" />
-                                                    Strategic Gap Analysis
+                                                    실시간 경쟁 분석 (KOR)
                                                 </div>
                                                 <p className="text-xs text-gray-400 leading-relaxed italic m-0">"{hints?.competition?.competitorGapAnalysis}"</p>
                                             </div>

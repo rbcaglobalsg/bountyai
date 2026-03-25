@@ -46,7 +46,8 @@ IMPORTANT: You MUST respond purely in valid JSON matching the following schema. 
     {
       "title": "${isEn ? 'Title in English' : 'Title in Korean'}",
       "description": "Description in ${isEn ? 'English' : 'Korean'}",
-      "command": "git command"
+      "command": "git command (optional)",
+      "codeSnippet": "exact code to copy-paste (optional, strongly encouraged!!!)"
     }
   ]
 }
@@ -54,10 +55,11 @@ IMPORTANT: You MUST respond purely in valid JSON matching the following schema. 
 IMPORTANT: You MUST respond in ${isEn ? 'English' : 'Korean (한국어) - All text must be in clear, professional Korean.'}.
 
 IMPORTANT REWARD SUCCESS RULES:
-- You are a REWARD ARCHITECT. Your goal is to get the user PAID.
+- You are a REWARD ARCHITECT. Your goal is to get the user PAID purely by copy-pasting.
 - Format the 5-7 most critical steps in ${isEn ? 'English' : 'Korean'}.
+- MANDATORY: Do NOT just describe the solution. Write the EXACT lines of code to modify in 'codeSnippet'.
 - MANDATORY STEP 1: Provide the exact \`git clone\` command.
-- MANDATORY FINAL STEP: Provide the exact \`git push\` command and PR text.
+- MANDATORY FINAL STEP: Provide the exact \`git push\` command and PR template.
 - Use extremely simple, non-preachy language. Assume the user is smart but BRAND NEW to GitHub.`
     });
 
@@ -76,8 +78,8 @@ IMPORTANT REWARD SUCCESS RULES:
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
         generationConfig: {
             responseMimeType: "application/json",
-            maxOutputTokens: 2500, // Cap output to prevent long generation timeouts
-            temperature: 0.2       // Highly deterministic for faster generation
+            temperature: 0.2,       // Highly deterministic for faster generation
+            maxOutputTokens: 8192
         }
     });
     return result.response.text();

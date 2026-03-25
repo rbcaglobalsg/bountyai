@@ -46,8 +46,11 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                 try {
                     const cleaned = data.hints.replace(/```json/gi, '').replace(/```/g, '').trim();
                     parsedHints = JSON.parse(cleaned);
-                } catch (e) {
-                    parsedHints = data.hints;
+                } catch (e: any) {
+                    console.error('Failed to parse AI hints JSON:', e);
+                    setError('The AI analysis was truncated or returned invalid formatting. Please try again.');
+                    setLoading(false);
+                    return;
                 }
                 setHints(parsedHints);
             } catch (err: any) {

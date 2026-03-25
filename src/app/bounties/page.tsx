@@ -31,6 +31,7 @@ export default function Bounties() {
     const [bounties, setBounties] = useState<Bounty[]>([]);
     const [search, setSearch] = useState('');
     const [filterLang, setFilterLang] = useState('All');
+    const [filterSource, setFilterSource] = useState('All');
     const [sortBy, setSortBy] = useState('latest');
     const [loading, setLoading] = useState(true);
     const [crawling, setCrawling] = useState(false);
@@ -53,6 +54,7 @@ export default function Bounties() {
             const params = new URLSearchParams();
             if (search) params.set('search', search);
             if (filterLang !== 'All') params.set('language', filterLang);
+            if (filterSource !== 'All') params.set('source', filterSource);
 
             const res = await fetch(`/api/bounties?${params.toString()}`);
             const data = await res.json();
@@ -111,7 +113,7 @@ export default function Bounties() {
         if (status === 'authenticated') {
             fetchBounties();
         }
-    }, [status, filterLang, sortBy]);
+    }, [status, filterLang, filterSource, sortBy]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -150,6 +152,17 @@ export default function Bounties() {
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-2xl font-bold font-display text-white">🎯 All Bounties</h1>
                 <div className="flex items-center gap-4">
+                    <select
+                        value={filterSource}
+                        onChange={(e) => setFilterSource(e.target.value)}
+                        className="hidden md:block bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded-xl focus:ring-green-500 focus:border-green-500 p-2.5 transition-all outline-none"
+                    >
+                        <option value="All">All Sources</option>
+                        <option value="github">GitHub</option>
+                        <option value="algora">Algora</option>
+                        <option value="issuehunt">IssueHunt</option>
+                    </select>
+
                     <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}

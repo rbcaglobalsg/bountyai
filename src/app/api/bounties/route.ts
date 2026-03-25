@@ -37,6 +37,11 @@ export async function GET(request: NextRequest) {
         };
     }
 
+    const source = searchParams.get('source');
+    if (source && source !== 'All') {
+        where.source = source.toLowerCase();
+    }
+
     const [bounties, total] = await Promise.all([
         prisma.bounty.findMany({
             where,

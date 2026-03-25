@@ -18,14 +18,23 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
         const fetchHints = async () => {
             try {
                 const res = await fetch(`/api/bounties/${bountyId}/hints`);
-                const data = await res.json();
-                if (res.ok) {
-                    setHints(data.hints);
-                } else {
-                    setError(data.error || 'Failed to fetch AI hints');
+                
+                if (!res.ok) {
+                    let errorMsg = 'Failed to fetch AI hints';
+                    try {
+                        const data = await res.json();
+                        errorMsg = data.error || errorMsg;
+                    } catch (e) {
+                        errorMsg = `Server Timeout or Proxy Error (${res.status})`;
+                    }
+                    setError(errorMsg);
+                    return;
                 }
-            } catch (err) {
-                setError('An unexpected error occurred');
+
+                const data = await res.json();
+                setHints(data.hints);
+            } catch (err: any) {
+                setError(`Connection Error: ${err.message}`);
             } finally {
                 setLoading(false);
             }

@@ -19,7 +19,10 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
         try {
             // Get default branch
             const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-                headers: { 'User-Agent': 'BountyAI-Agent' }
+                headers: { 
+                    'User-Agent': 'BountyAI-Agent',
+                    ...(process.env.GITHUB_TOKEN ? { 'Authorization': `token ${process.env.GITHUB_TOKEN}` } : {})
+                }
             });
             
             if (repoRes.ok) {
@@ -28,7 +31,10 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
                 
                 // Get tree (recursive up to a certain depth/size)
                 const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${defaultBranch}?recursive=1`, {
-                    headers: { 'User-Agent': 'BountyAI-Agent' }
+                    headers: { 
+                        'User-Agent': 'BountyAI-Agent',
+                        ...(process.env.GITHUB_TOKEN ? { 'Authorization': `token ${process.env.GITHUB_TOKEN}` } : {})
+                    }
                 });
                 
                 if (treeRes.ok) {
@@ -56,7 +62,8 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
             const readmeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/readme`, {
                 headers: { 
                     'User-Agent': 'BountyAI-Agent',
-                    'Accept': 'application/vnd.github.v3.raw'
+                    'Accept': 'application/vnd.github.v3.raw',
+                    ...(process.env.GITHUB_TOKEN ? { 'Authorization': `token ${process.env.GITHUB_TOKEN}` } : {})
                 }
             });
             if (readmeRes.ok) {

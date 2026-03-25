@@ -24,9 +24,9 @@ export async function generateHints(
 ): Promise<string> {
     const isEn = lang === 'en';
     const genAI = getGeminiClient();
-    // Use gemini-1.5-flash for its massive context window capability and high generation speed
+    // Use gemini-2.0-flash for its massive context window capability and high generation speed
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-1.5-flash",
+        model: "gemini-2.0-flash",
         systemInstruction: `You are an elite, senior software architect specializing in technical bounties and open-source contributions.
 Your task is to provide a meticulously detailed, highly actionable, and precise step-by-step guide to solve the given issue.
 You have access to the repository's file tree, README, and the latest issue comments.

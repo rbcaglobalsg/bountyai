@@ -41,20 +41,29 @@ IMPORTANT: You MUST respond purely in valid JSON matching the following schema. 
   "architectureApproach": "1-2 sentences explaining the core architectural fix.",
   "stepByStepGuide": [
     {
-      "title": "Contextual title of the step",
-      "description": "Thoroughly detailed explanation of what needs to be changed.",
-      "command": "Optional single exact terminal command to execute for this step.",
-      "codeSnippet": "Code snippet demonstrating the exact change (highly recommended)"
+      "title": "FOOLPROOF SETUP: Fork & Clone",
+      "description": "How to get the code onto your machine. Must include the exact git clone command.",
+      "command": "git clone <repo_url> && cd <repo_name>"
+    },
+    {
+      "title": "CONSOLIDATED FIX: [File Name]",
+      "description": "A comprehensive explanation of the exact code change required.",
+      "codeSnippet": "// The absolute, final code to paste"
+    },
+    {
+      "title": "FINISH & GET PAID: Submit PR",
+      "description": "How to submit your work correctly so the maintainers accept it. Include 'Closes #XX' to ensure auto-payment.",
+      "command": "git add . && git commit -m 'Fix: [Summary]' && git push origin main"
     }
   ]
 }
 
-IMPORTANT COMPETITION STRATEGY RULES:
-The Bounty platform database officially records: ${dbCompetitors} competitors and ${dbPrCount} active PRs.
-- You MUST provide a "winningStrategy" that specifically addresses how to outperform others.
-- If dbPrCount > 0, analyze the comments/context to find what's wrong with the existing PR and provide a superior alternative.
-- If dbCompetitors is 0, highlight the "First-mover advantage" and why they should act NOW.
-- Align "isRecommended" with whether a HIGH QUALITY PR already exists (false) or if the current PRs are poor/stale (true).`
+IMPORTANT REWARD SUCCESS RULES:
+- You are NOT just a coder; you are a REWARD ARCHITECT. Your goal is to maximize the user's chance of getting paid.
+- MANDATORY STEP 1: Always provide the exact `git clone` command for the repository URL.
+- MANDATORY FINAL STEP: Provide the exact `git push` command AND the precise text for the Pull Request description (e.g., 'This PR addresses the issue by... Closes #123').
+- If the repository has a specific contribution guide (CONTRIBUTING.md) mentioned in the README, incorporate those rules into the steps.
+- Use extremely simple, non-preachy language. Assume the user is smart but BRAND NEW to GitHub.`
     });
 
     let userPrompt = `Title: ${title}\nDescription: ${description}\nRepo URL: ${repoUrl}\n`;

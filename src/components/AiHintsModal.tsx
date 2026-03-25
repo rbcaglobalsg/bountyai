@@ -119,6 +119,17 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                                         </div>
 
                                         <div className="mt-2 space-y-4 pt-4 border-t border-gray-800/50">
+                                            {/* Beginner Help Box */}
+                                            <div className="bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl flex gap-3 items-start">
+                                                <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5" />
+                                                <div>
+                                                    <div className="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] mb-1">New to GitHub?</div>
+                                                    <p className="text-xs text-gray-400 m-0 leading-relaxed">
+                                                        Don't worry! To get paid, you just need to **Fork** the repo, **Clone** it using the commands below, and **Submit a PR** with the text "Closes #ID". BountyAI handles the complex logic for you.
+                                                    </p>
+                                                </div>
+                                            </div>
+
                                             <div>
                                                 <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5">
                                                     <History className="w-3 h-3" />

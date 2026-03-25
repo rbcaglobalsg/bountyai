@@ -21,7 +21,7 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
             setLoading(true);
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout
+                const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout to allow deep analysis
                 
                 const res = await fetch(`/api/bounties/${bountyId}/hints?lang=${language}&model=${model}`, {
                     signal: controller.signal
@@ -86,8 +86,8 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                                             disabled={loading}
                                             className="bg-purple-500/10 text-purple-400 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30 font-black hover:bg-purple-500/20 transition-all outline-none appearance-none cursor-pointer"
                                         >
-                                            <option value="gemini-3.1-pro-preview" className="bg-gray-900">Gemini 3.1 Pro (High)</option>
-                                            <option value="gemini-3-flash-preview" className="bg-gray-900">Gemini 3 Flash</option>
+                                            <option value="gemini-3.1-pro-preview" className="bg-gray-900">BountyAI Elite (Deep)</option>
+                                            <option value="gemini-3-flash-preview" className="bg-gray-900">BountyAI Fast (Speed)</option>
                                         </select>
                                         <button 
                                             onClick={toggleLanguage}

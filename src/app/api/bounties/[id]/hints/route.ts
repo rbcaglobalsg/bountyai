@@ -6,7 +6,7 @@ import { generateHints } from '@/lib/gemini';
 import { getRepositoryContext } from '@/lib/github';
 import { Plan } from '@/types';
 
-export const maxDuration = 60;
+export const maxDuration = 300; // Increased to 5 minutes to prevent 502 Timeout on complex Pro tasks
 
 export async function GET(
     request: NextRequest,

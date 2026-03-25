@@ -40,7 +40,7 @@ export async function GET(
         // [MOD] Read lang and model from searchParams
         const searchParams = request.nextUrl.searchParams;
         const lang = searchParams.get('lang') || 'ko';
-        const modelName = searchParams.get('model') || 'gemini-3-flash';
+        const modelName = searchParams.get('model') || 'gemini-3.1-pro-preview';
 
         // Check if hints already saved in a submission or if we should generate fresh
         let submission = await prisma.submission.findUnique({

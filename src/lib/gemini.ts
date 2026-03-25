@@ -21,7 +21,7 @@ export async function generateHints(
     dbCompetitors: number = 0,
     dbPrCount: number = 0,
     lang: string = 'ko',
-    modelName: string = 'gemini-3.1-pro'
+    modelName: string = 'gemini-3.1-pro-preview'
 ): Promise<string> {
     const isEn = lang === 'en';
     const genAI = getGeminiClient();

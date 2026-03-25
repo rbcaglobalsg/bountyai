@@ -14,7 +14,7 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [language, setLanguage] = useState<'en' | 'ko'>('ko');
-    const [model, setModel] = useState<'gemini-3.1-pro' | 'gemini-3-flash'>('gemini-3.1-pro');
+    const [model, setModel] = useState<'gemini-3.1-pro-preview' | 'gemini-3-flash-preview'>('gemini-3.1-pro-preview');
 
     useEffect(() => {
         const fetchHints = async () => {
@@ -86,8 +86,8 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                                             disabled={loading}
                                             className="bg-purple-500/10 text-purple-400 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30 font-black hover:bg-purple-500/20 transition-all outline-none appearance-none cursor-pointer"
                                         >
-                                            <option value="gemini-3.1-pro" className="bg-gray-900">Gemini 3.1 Pro (High)</option>
-                                            <option value="gemini-3-flash" className="bg-gray-900">Gemini 3 Flash</option>
+                                            <option value="gemini-3.1-pro-preview" className="bg-gray-900">Gemini 3.1 Pro (High)</option>
+                                            <option value="gemini-3-flash-preview" className="bg-gray-900">Gemini 3 Flash</option>
                                         </select>
                                         <button 
                                             onClick={toggleLanguage}

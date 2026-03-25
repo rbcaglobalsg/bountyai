@@ -20,13 +20,14 @@ export async function generateHints(
     repoContext?: { readme: string, fileTree: string, issueComments?: string },
     dbCompetitors: number = 0,
     dbPrCount: number = 0,
-    lang: string = 'ko'
+    lang: string = 'ko',
+    modelName: string = 'gemini-3.1-pro'
 ): Promise<string> {
     const isEn = lang === 'en';
     const genAI = getGeminiClient();
-    // Use gemini-3-flash for cutting-edge performance and massive context as seen in user environment
+    // Use the model explicitly requested by the user/system (Default: Gemini 3.1 Pro)
     const model = genAI.getGenerativeModel({ 
-        model: "gemini-3-flash",
+        model: modelName,
         systemInstruction: `You are an elite, senior software architect specializing in technical bounties and open-source contributions.
 Your task is to provide a meticulously detailed, highly actionable, and precise step-by-step guide to solve the given issue.
 You have access to the repository's file tree, README, and the latest issue comments.

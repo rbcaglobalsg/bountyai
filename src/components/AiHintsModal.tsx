@@ -14,14 +14,16 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [language, setLanguage] = useState<'en' | 'ko'>('ko');
+    const [model, setModel] = useState<'gemini-3.1-pro' | 'gemini-3-flash'>('gemini-3.1-pro');
 
     useEffect(() => {
         const fetchHints = async () => {
+            setLoading(true);
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout
                 
-                const res = await fetch(`/api/bounties/${bountyId}/hints?lang=${language}`, {
+                const res = await fetch(`/api/bounties/${bountyId}/hints?lang=${language}&model=${model}`, {
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
@@ -74,20 +76,31 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                         <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center shadow-inner shadow-purple-500/20">
                             <Sparkles className="w-6 h-6 text-purple-400" />
                         </div>
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h2 className="text-xl font-bold text-white font-display">Elite AI Solution</h2>
-                                <button 
-                                    onClick={toggleLanguage}
-                                    disabled={loading}
-                                    className="bg-purple-500/10 text-purple-400 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30 font-black hover:bg-purple-500/20 transition-all flex items-center gap-1 group"
-                                >
-                                    <Languages className="w-3 h-3 group-hover:rotate-12 transition-transform" />
-                                    {language === 'en' ? 'ENGLISH' : '한국어'}
-                                </button>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h2 className="text-xl font-bold text-white font-display">Elite AI Solution</h2>
+                                    <div className="flex items-center gap-1.5">
+                                        <select 
+                                            value={model} 
+                                            onChange={(e) => setModel(e.target.value as any)}
+                                            disabled={loading}
+                                            className="bg-purple-500/10 text-purple-400 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30 font-black hover:bg-purple-500/20 transition-all outline-none appearance-none cursor-pointer"
+                                        >
+                                            <option value="gemini-3.1-pro" className="bg-gray-900">Gemini 3.1 Pro (High)</option>
+                                            <option value="gemini-3-flash" className="bg-gray-900">Gemini 3 Flash</option>
+                                        </select>
+                                        <button 
+                                            onClick={toggleLanguage}
+                                            disabled={loading}
+                                            className="bg-blue-500/10 text-blue-400 text-[10px] px-2 py-0.5 rounded-full border border-blue-500/30 font-black hover:bg-blue-500/20 transition-all flex items-center gap-1 group"
+                                        >
+                                            <Languages className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                                            {language === 'en' ? 'EN' : 'KO'}
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="text-gray-400 text-xs truncate max-w-[400px]">{bountyTitle}</p>
                             </div>
-                            <p className="text-gray-400 text-xs truncate max-w-[400px]">{bountyTitle}</p>
-                        </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-white">
                         <X className="w-6 h-6" />

@@ -37,9 +37,10 @@ export async function GET(
             return NextResponse.json({ error: 'Bounty not found' }, { status: 404 });
         }
 
-        // [MOD] Read lang from searchParams
+        // [MOD] Read lang and model from searchParams
         const searchParams = request.nextUrl.searchParams;
         const lang = searchParams.get('lang') || 'ko';
+        const modelName = searchParams.get('model') || 'gemini-3-flash';
 
         // Check if hints already saved in a submission or if we should generate fresh
         let submission = await prisma.submission.findUnique({
@@ -54,13 +55,10 @@ export async function GET(
         if (submission?.aiHints) {
             try {
                 const cleaned = submission.aiHints.replace(/```json/gi, '').replace(/```/g, '').trim();
-                const parsed = JSON.parse(cleaned);
+                JSON.parse(cleaned);
                 
-                // [MOD] Simple check: if the content language doesn't match the requested lang, we might want to regenerate.
-                // For now, if lang is requested specifically, we let it regenerate or we can skip if it's already localized.
-                // To keep it simple, we'll return cache ONLY if no specific lang requested OR if it's a simple match.
-                // Actually, let's just always regenerate if they hit the toggle for now to ensure quality.
-                if (!searchParams.has('lang')) {
+                // If specific lang or model requested, we bypass cache for now to ensure localized/modeled output
+                if (!searchParams.has('lang') && !searchParams.has('model')) {
                     return NextResponse.json({ hints: submission.aiHints });
                 }
             } catch (e) {
@@ -70,7 +68,7 @@ export async function GET(
 
         // Generate fresh hints
         const repoContext = await getRepositoryContext(bounty.url);
-        const hints = await generateHints(bounty.title, bounty.description, bounty.url, repoContext, bounty.competitors, bounty.linkedPrCount, lang);
+        const hints = await generateHints(bounty.title, bounty.description, bounty.url, repoContext, bounty.competitors, bounty.linkedPrCount, lang, modelName);
         
         // Save to submission (upsert)
         await prisma.submission.upsert({

@@ -183,13 +183,17 @@ async function getRepoLanguages(
     }
 }
 
-async function getIssueMetrics(
+export async function getIssueMetrics(
     owner: string,
     name: string,
     issueNumber: number,
     authorLogin?: string
 ): Promise<{ linkedPrCount: number, competitors: number }> {
     try {
+        if (!process.env.GITHUB_TOKEN) {
+            console.warn('[DEBUG] GITHUB_TOKEN is missing in getIssueMetrics context');
+        }
+
         const [timelineRes, commentsRes] = await Promise.all([
             fetch(`https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}/timeline`, {
                 cache: 'no-store',
@@ -208,6 +212,10 @@ async function getIssueMetrics(
                 signal: AbortSignal.timeout(8000)
             })
         ]);
+
+        if (!commentsRes.ok) {
+            console.error(`[DEBUG] Comments fetch failed for ${owner}/${name}#${issueNumber}: ${commentsRes.status} ${commentsRes.statusText}`);
+        }
 
         let linkedPrCount = 0;
         if (timelineRes.ok) {
@@ -257,7 +265,8 @@ async function getIssueMetrics(
         competitors = Math.max(competitors, linkedPrCount);
 
         return { linkedPrCount, competitors };
-    } catch {
+    } catch (error) {
+        console.error(`[DEBUG] Error in getIssueMetrics for ${owner}/${name}#${issueNumber}:`, error);
         return { linkedPrCount: 0, competitors: 0 };
     }
 }

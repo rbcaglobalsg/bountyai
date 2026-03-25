@@ -56,6 +56,7 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
             const response = await fetch(
                 `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=15`,
                 {
+                    cache: 'no-store',
                     headers: {
                         Accept: 'application/vnd.github.v3+json',
                         ...(process.env.GITHUB_TOKEN
@@ -163,6 +164,7 @@ async function getRepoLanguages(
         const response = await fetch(
             `https://api.github.com/repos/${owner}/${name}/languages`,
             {
+                cache: 'no-store',
                 headers: {
                     Accept: 'application/vnd.github.v3+json',
                     ...(process.env.GITHUB_TOKEN
@@ -190,6 +192,7 @@ async function getIssueMetrics(
     try {
         const [timelineRes, commentsRes] = await Promise.all([
             fetch(`https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}/timeline`, {
+                cache: 'no-store',
                 headers: {
                     Accept: 'application/vnd.github.mockingbird-preview+json',
                     ...(process.env.GITHUB_TOKEN ? { Authorization: `token ${process.env.GITHUB_TOKEN}` } : {}),
@@ -197,6 +200,7 @@ async function getIssueMetrics(
                 signal: AbortSignal.timeout(8000)
             }),
             fetch(`https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}/comments?per_page=100`, {
+                cache: 'no-store',
                 headers: {
                     Accept: 'application/vnd.github.v3+json',
                     ...(process.env.GITHUB_TOKEN ? { Authorization: `token ${process.env.GITHUB_TOKEN}` } : {}),

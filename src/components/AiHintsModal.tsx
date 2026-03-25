@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Loader2, FileCode, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Sparkles, Loader2, FileCode, CheckCircle2, AlertCircle, History } from 'lucide-react';
 
 interface AiHintsModalProps {
     bountyId: string;
@@ -95,19 +95,39 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                             ) : (
                                 <div className="space-y-10">
                                     {/* 1. Competition Analysis */}
-                                    <div className={`p-6 rounded-2xl border flex gap-4 ${hints?.competition?.isRecommended ? 'bg-green-500/10 border-green-500/20' : 'bg-orange-500/10 border-orange-500/20'}`}>
-                                        <div className="mt-1">
-                                            {hints?.competition?.isRecommended ? (
-                                                <CheckCircle2 className="w-6 h-6 text-green-500" />
-                                            ) : (
-                                                <AlertCircle className="w-6 h-6 text-orange-500" />
-                                            )}
+                                    <div className={`p-6 rounded-2xl border flex flex-col gap-4 ${hints?.competition?.isRecommended ? 'bg-green-500/10 border-green-500/20' : 'bg-orange-500/10 border-orange-500/20'}`}>
+                                        <div className="flex gap-4">
+                                            <div className="mt-1">
+                                                {hints?.competition?.isRecommended ? (
+                                                    <CheckCircle2 className="w-6 h-6 text-green-500" />
+                                                ) : (
+                                                    <AlertCircle className="w-6 h-6 text-orange-500" />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-white mb-2 !mt-0">
+                                                    {hints?.competition?.isRecommended ? 'Recommended to Proceed' : 'High Competition / Proceed with Caution'}
+                                                </h3>
+                                                <p className="text-gray-300 text-sm m-0 leading-relaxed font-bold">{hints?.competition?.statusSummary}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h3 className="text-lg font-bold text-white mb-2 !mt-0">
-                                                {hints?.competition?.isRecommended ? 'Recommended to Proceed' : 'High Competition / Not Recommended'}
-                                            </h3>
-                                            <p className="text-gray-300 text-sm m-0 leading-relaxed">{hints?.competition?.statusSummary}</p>
+
+                                        <div className="mt-2 space-y-4 pt-4 border-t border-gray-800/50">
+                                            <div>
+                                                <div className="text-[10px] text-gray-500 uppercase font-bold tracking-widest mb-1.5 flex items-center gap-1.5">
+                                                    <History className="w-3 h-3" />
+                                                    Strategic Gap Analysis
+                                                </div>
+                                                <p className="text-xs text-gray-400 leading-relaxed italic m-0">"{hints?.competition?.competitorGapAnalysis}"</p>
+                                            </div>
+                                            
+                                            <div className="bg-purple-500/10 border border-purple-500/20 p-4 rounded-xl">
+                                                <div className="text-[10px] text-purple-400 uppercase font-black tracking-[0.2em] mb-2 flex items-center gap-1.5">
+                                                    <Sparkles className="w-3 h-3" />
+                                                    BountyAI Winning Strategy
+                                                </div>
+                                                <p className="text-sm text-white font-medium leading-relaxed m-0">{hints?.competition?.winningStrategy}</p>
+                                            </div>
                                         </div>
                                     </div>
                                     

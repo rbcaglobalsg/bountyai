@@ -128,15 +128,21 @@ export default function BountyCard({
                         {competitors} competing
                     </span>
                     {linkedPrCount !== undefined && linkedPrCount > 0 && (
-                        <span className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full flex items-center gap-1 border border-blue-500/20 font-bold">
+                        <span 
+                            title="Another developer has already submitted a code fix. You need a better or faster solution to win."
+                            className="bg-blue-500/10 text-blue-400 px-2 py-0.5 rounded-full flex items-center gap-1 border border-blue-500/20 font-bold whitespace-nowrap"
+                        >
                              <GitBranch className="w-3 h-3" />
-                             {linkedPrCount} PRs
+                             {linkedPrCount} Active Attempt{linkedPrCount > 1 ? 's' : ''} (PR Submitted)
                         </span>
                     )}
                     {linkedPrCount === 0 && (
-                        <span className="bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full flex items-center gap-1 border border-green-500/20 font-bold">
+                        <span 
+                            title="No one has started working on this yet. Your chance of winning is 100% if you submit first!"
+                            className="bg-green-500/10 text-green-400 px-2 py-0.5 rounded-full flex items-center gap-1 border border-green-500/20 font-bold whitespace-nowrap"
+                        >
                              <Flame className="w-3 h-3" />
-                             Fresh
+                             Untapped (No active PRs)
                         </span>
                     )}
                 </div>

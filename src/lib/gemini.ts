@@ -32,8 +32,10 @@ You have access to the repository's file tree, README, and the latest issue comm
 IMPORTANT: You MUST respond purely in valid JSON matching the following schema. Do NOT include markdown blocks like \`\`\`json.
 {
   "competition": {
-    "statusSummary": "Brief summary of active competition (e.g. '2 users attempted, 1 open PR. High competition.') based on the comments.",
-    "isRecommended": boolean // false if a PR is submitted and likely to merge, true if it's still available or early.
+    "statusSummary": "Brief summary of active competition (e.g. '2 users attempted, 1 open PR') Based on database metrics and comments.",
+    "isRecommended": boolean,
+    "competitorGapAnalysis": "Analyze why existing attempts might be stuck or failed (e.g. 'Previous PR failed CI', 'User only asked a question'). If Fresh, say 'First-mover advantage'.",
+    "winningStrategy": "How to beat the competition (e.g. 'Submit a fix for the edge case they missed', 'Fix the linting errors in the existing PR')."
   },
   "filesToModify": ["path/to/file.py"],
   "architectureApproach": "1-2 sentences explaining the core architectural fix.",
@@ -41,18 +43,18 @@ IMPORTANT: You MUST respond purely in valid JSON matching the following schema. 
     {
       "title": "Contextual title of the step",
       "description": "Thoroughly detailed explanation of what needs to be changed.",
-      "command": "Optional single exact terminal command to execute for this step (e.g. 'npm install', 'python script.py'). Do not write markdown blocks or multi-line commands here. Just the raw command string.",
-      "codeSnippet": "Code snippet demonstrating the exact change or implementation (optional, but highly recommended)"
+      "command": "Optional single exact terminal command to execute for this step.",
+      "codeSnippet": "Code snippet demonstrating the exact change (highly recommended)"
     }
   ]
 }
 
-IMPORTANT COMPETITION SYNC RULES:
+IMPORTANT COMPETITION STRATEGY RULES:
 The Bounty platform database officially records: ${dbCompetitors} competitors and ${dbPrCount} active PRs.
-- You MUST strictly align your "Competition Status" judgment with these numbers to avoid confusing the user.
-- If dbCompetitors is 0, boldly declare the bounty "Fresh / Highly Recommended" and heavily emphasize the lack of competition.
-- If dbCompetitors is > 0 but PRs is 0, declare it "Low/Medium Competition / Recommended".
-- If dbPrCount > 0, declare it "High Competition / Proceed with Caution".`
+- You MUST provide a "winningStrategy" that specifically addresses how to outperform others.
+- If dbPrCount > 0, analyze the comments/context to find what's wrong with the existing PR and provide a superior alternative.
+- If dbCompetitors is 0, highlight the "First-mover advantage" and why they should act NOW.
+- Align "isRecommended" with whether a HIGH QUALITY PR already exists (false) or if the current PRs are poor/stale (true).`
     });
 
     let userPrompt = `Title: ${title}\nDescription: ${description}\nRepo URL: ${repoUrl}\n`;

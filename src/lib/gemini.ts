@@ -75,7 +75,9 @@ IMPORTANT REWARD SUCCESS RULES:
     const result = await model.generateContent({
         contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
         generationConfig: {
-            responseMimeType: "application/json"
+            responseMimeType: "application/json",
+            maxOutputTokens: 2500, // Cap output to prevent long generation timeouts
+            temperature: 0.2       // Highly deterministic for faster generation
         }
     });
     return result.response.text();

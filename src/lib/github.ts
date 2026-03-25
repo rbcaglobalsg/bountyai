@@ -75,7 +75,7 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
                             .filter((item: any) => item.type === 'blob')
                             .map((item: any) => item.path)
                             .filter((path: string) => !ignoreMap.some(ignored => path.includes(ignored)))
-                            .slice(0, 800)
+                            .slice(0, 300) // Reduced from 800 to 300 to speed up AI processing and prevent timeouts
                             .join('\n');
                     }
                 }
@@ -87,7 +87,7 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
         // Process README
         if (readmeRes.ok) {
             readme = await readmeRes.text();
-            if (readme.length > 5000) readme = readme.substring(0, 5000) + '...[TRUNCATED]';
+            if (readme.length > 2500) readme = readme.substring(0, 2500) + '...[TRUNCATED]'; // Reduced from 5000 to 2500
         }
 
         // Process Comments

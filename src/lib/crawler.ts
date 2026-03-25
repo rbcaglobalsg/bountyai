@@ -210,7 +210,7 @@ async function getIssueMetrics(
             e.source?.issue?.pull_request
         );
 
-        const commentEvents = data.filter((e: any) => e.event === 'commented');
+        const commentEvents = data.filter((e: any) => !e.event && e.body !== undefined);
         const attemptingUsers = new Set<string>();
         
         for (const c of commentEvents) {

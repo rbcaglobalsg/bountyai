@@ -60,7 +60,7 @@ export async function GET(
 
         // Generate fresh hints
         const repoContext = await getRepositoryContext(bounty.url);
-        const hints = await generateHints(bounty.title, bounty.description, bounty.url, repoContext);
+        const hints = await generateHints(bounty.title, bounty.description, bounty.url, repoContext, bounty.competitors, bounty.linkedPrCount);
         
         // Save to submission (upsert)
         await prisma.submission.upsert({

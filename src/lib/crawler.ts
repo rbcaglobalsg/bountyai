@@ -224,12 +224,32 @@ async function getIssueMetrics(
             
             for (const c of commentsData) {
                 const body = (c.body || '').toLowerCase();
-                const actor = c.user?.login;
+                const actor = c.user?.login || '';
                 
-                if (actor && actor !== authorLogin && !actor.includes('bot')) {
-                    uniqueCommenters.add(actor);
-                    if (body.includes('/attempt') || body.includes('work on this') || body.includes('take a shot')) {
-                        attemptingUsers.add(actor);
+                if (actor && actor !== authorLogin) {
+                    if (!actor.includes('bot')) {
+                        uniqueCommenters.add(actor);
+                        if (
+                            body.includes('/attempt') || 
+                            body.includes('work on this') || 
+                            body.includes('working on it') || 
+                            body.includes('take a shot') ||
+                            body.includes('created a pr') ||
+                            body.includes('fix this')
+                        ) {
+                            attemptingUsers.add(actor);
+                        }
+                    } else {
+                        // Check bot messages for assignment confirmations
+                        if (
+                            body.includes('started working') || 
+                            body.includes('attempting this') || 
+                            body.includes('opened a pull request') || 
+                            body.includes('submitted a pull') || 
+                            body.includes('rewarded')
+                        ) {
+                            attemptingUsers.add(`bot-reported-${c.id}`);
+                        }
                     }
                 }
             }
@@ -238,6 +258,9 @@ async function getIssueMetrics(
                 ? attemptingUsers.size 
                 : (uniqueCommenters.size > 0 ? Math.min(1, Math.floor(uniqueCommenters.size / 2) || 1) : 0);
         }
+
+        // Ensure competitors is at least the number of linked PRs
+        competitors = Math.max(competitors, linkedPrCount);
 
         return { linkedPrCount, competitors };
     } catch {

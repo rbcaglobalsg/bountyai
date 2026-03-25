@@ -17,7 +17,9 @@ export async function generateHints(
     title: string,
     description: string,
     repoUrl: string,
-    repoContext?: { readme: string, fileTree: string, issueComments?: string }
+    repoContext?: { readme: string, fileTree: string, issueComments?: string },
+    dbCompetitors: number = 0,
+    dbPrCount: number = 0
 ): Promise<string> {
     const genAI = getGeminiClient();
     // Use gemini-2.5-flash for its massive context window capability and high generation speed
@@ -43,7 +45,14 @@ IMPORTANT: You MUST respond purely in valid JSON matching the following schema. 
       "codeSnippet": "Code snippet demonstrating the exact change or implementation (optional, but highly recommended)"
     }
   ]
-}`
+}
+
+IMPORTANT COMPETITION SYNC RULES:
+The Bounty platform database officially records: ${dbCompetitors} competitors and ${dbPrCount} active PRs.
+- You MUST strictly align your "Competition Status" judgment with these numbers to avoid confusing the user.
+- If dbCompetitors is 0, boldly declare the bounty "Fresh / Highly Recommended" and heavily emphasize the lack of competition.
+- If dbCompetitors is > 0 but PRs is 0, declare it "Low/Medium Competition / Recommended".
+- If dbPrCount > 0, declare it "High Competition / Proceed with Caution".`
     });
 
     let userPrompt = `Title: ${title}\nDescription: ${description}\nRepo URL: ${repoUrl}\n`;

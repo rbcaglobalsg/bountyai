@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Sparkles, Loader2, FileCode, CheckCircle2, AlertCircle, History } from 'lucide-react';
+import { X, Sparkles, Loader2, FileCode, CheckCircle2, AlertCircle, History, Languages } from 'lucide-react';
 
 interface AiHintsModalProps {
     bountyId: string;
@@ -13,6 +13,7 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
     const [hints, setHints] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [language, setLanguage] = useState<'en' | 'ko'>('ko');
 
     useEffect(() => {
         const fetchHints = async () => {
@@ -20,7 +21,7 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 55000); // 55s timeout
                 
-                const res = await fetch(`/api/bounties/${bountyId}/hints`, {
+                const res = await fetch(`/api/bounties/${bountyId}/hints?lang=${language}`, {
                     signal: controller.signal
                 });
                 clearTimeout(timeoutId);
@@ -54,7 +55,13 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
             }
         };
         fetchHints();
-    }, [bountyId]);
+    }, [bountyId, language]); // Add language to dependency array
+
+    const toggleLanguage = () => {
+        const nextLang = language === 'en' ? 'ko' : 'en';
+        setLanguage(nextLang);
+        // fetchHints will be called by useEffect due to language change
+    };
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -70,7 +77,14 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                         <div>
                             <div className="flex items-center gap-2">
                                 <h2 className="text-xl font-bold text-white font-display">Elite AI Solution</h2>
-                                <span className="bg-purple-500/20 text-purple-400 text-[10px] px-1.5 py-0.5 rounded border border-purple-500/30 font-black">KOR</span>
+                                <button 
+                                    onClick={toggleLanguage}
+                                    disabled={loading}
+                                    className="bg-purple-500/10 text-purple-400 text-[10px] px-2 py-0.5 rounded-full border border-purple-500/30 font-black hover:bg-purple-500/20 transition-all flex items-center gap-1 group"
+                                >
+                                    <Languages className="w-3 h-3 group-hover:rotate-12 transition-transform" />
+                                    {language === 'en' ? 'ENGLISH' : '한국어'}
+                                </button>
                             </div>
                             <p className="text-gray-400 text-xs truncate max-w-[400px]">{bountyTitle}</p>
                         </div>

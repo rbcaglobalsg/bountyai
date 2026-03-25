@@ -42,6 +42,11 @@ export async function GET(request: NextRequest) {
         where.source = source.toLowerCase();
     }
 
+    const fresh = searchParams.get('fresh');
+    if (fresh === 'true') {
+        where.competitors = 0;
+    }
+
     const [bounties, total] = await Promise.all([
         prisma.bounty.findMany({
             where,

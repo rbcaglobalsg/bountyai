@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Search, RefreshCw, Loader2, Lock } from 'lucide-react';
+import { Search, RefreshCw, Loader2, Lock, Flame } from 'lucide-react';
 import { Plan } from '@/types';
 import BountyCard from '@/components/BountyCard';
 import AiHintsModal from '@/components/AiHintsModal';
@@ -32,6 +32,7 @@ export default function Bounties() {
     const [search, setSearch] = useState('');
     const [filterLang, setFilterLang] = useState('All');
     const [filterSource, setFilterSource] = useState('All');
+    const [freshOnly, setFreshOnly] = useState(false);
     const [sortBy, setSortBy] = useState('latest');
     const [loading, setLoading] = useState(true);
     const [crawling, setCrawling] = useState(false);
@@ -55,17 +56,22 @@ export default function Bounties() {
             if (search) params.set('search', search);
             if (filterLang !== 'All') params.set('language', filterLang);
             if (filterSource !== 'All') params.set('source', filterSource);
+            if (freshOnly) params.set('fresh', 'true');
 
             const res = await fetch(`/api/bounties?${params.toString()}`);
             const data = await res.json();
             
             let fetchedBounties: Bounty[] = data.bounties || [];
             
-            // Apply sorting locally
             if (sortBy === 'amount') {
                 fetchedBounties.sort((a, b) => b.amount - a.amount);
             } else if (sortBy === 'match' && !isFree) {
                 fetchedBounties.sort((a, b) => (b.matchScore || 0) - (a.matchScore || 0));
+            } else if (sortBy === 'competition' && !isFree) {
+                fetchedBounties.sort((a, b) => {
+                    if (a.competitors !== b.competitors) return a.competitors - b.competitors;
+                    return b.amount - a.amount;
+                });
             } else {
                 // Latest is default (Prisma returns latest first usually)
             }
@@ -113,7 +119,7 @@ export default function Bounties() {
         if (status === 'authenticated') {
             fetchBounties();
         }
-    }, [status, filterLang, filterSource, sortBy]);
+    }, [status, filterLang, filterSource, sortBy, freshOnly]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -171,6 +177,7 @@ export default function Bounties() {
                         <option value="latest">Latest First</option>
                         <option value="amount">Highest Reward</option>
                         {!isFree && <option value="match">Best Match</option>}
+                        {!isFree && <option value="competition">Least Competition</option>}
                     </select>
                     <button
                         onClick={runCrawl}
@@ -222,7 +229,22 @@ export default function Bounties() {
                 )}
             </div>
 
-            <div className="flex gap-2 mb-8 flex-wrap">
+            <div className="flex gap-2 mb-8 flex-wrap items-center">
+                {!isFree && (
+                    <>
+                        <button
+                            onClick={() => setFreshOnly(!freshOnly)}
+                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-1.5 ${freshOnly
+                                    ? 'bg-green-500 text-black shadow-lg shadow-green-500/20'
+                                    : 'bg-green-500/10 text-green-400 border border-green-500/20 hover:bg-green-500/20'
+                                }`}
+                        >
+                            <Flame className={`w-4 h-4 ${freshOnly ? 'text-black' : 'text-green-500'}`} />
+                            Fresh Only (0 Competing)
+                        </button>
+                        <div className="w-px h-8 bg-gray-800 mx-1 self-center rounded-full hidden md:block" />
+                    </>
+                )}
                 {languages.map((lang) => (
                     <button
                         key={lang}

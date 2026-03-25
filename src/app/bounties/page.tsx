@@ -81,20 +81,28 @@ export default function Bounties() {
         setCrawlResult('');
         try {
             const res = await fetch('/api/crawl', { method: 'POST' });
-            const data = await res.json();
             
             if (!res.ok) {
-                setCrawlResult(`Error: ${data.error || 'Crawl failed'}`);
+                let errorMessage = 'Crawl failed';
+                try {
+                    const data = await res.json();
+                    errorMessage = data.error || errorMessage;
+                } catch (e) {
+                    errorMessage = `Server Error ${res.status}: ${res.statusText}`;
+                }
+                setCrawlResult(`Error: ${errorMessage}`);
                 setCrawling(false);
                 return;
             }
 
+            const data = await res.json();
             setCrawlResult(
                 `Found ${data.totalFound} bounties, ${data.newAdded} new added (${data.duration})`
             );
             fetchBounties();
-        } catch (error) {
-            setCrawlResult('Connection error during crawl');
+        } catch (error: any) {
+            setCrawlResult(`Connection error during crawl: ${error.message || 'Unknown error'}`);
+            console.error('Crawl Error:', error);
         }
         setCrawling(false);
     };

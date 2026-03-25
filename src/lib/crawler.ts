@@ -53,7 +53,7 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
     for (const query of queries) {
         try {
             const response = await fetch(
-                `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=50`,
+                `https://api.github.com/search/issues?q=${encodeURIComponent(query)}&sort=updated&order=desc&per_page=15`,
                 {
                     headers: {
                         Accept: 'application/vnd.github.v3+json',
@@ -80,11 +80,11 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
                 const repoOwner = repoMatch?.[1] || '';
                 const repoName = repoMatch?.[2] || '';
 
-                // 언어 가져오기
-                const languages = await getRepoLanguages(repoOwner, repoName);
-                
-                // 연결된 PR 개수 가져오기
-                const linkedPrCount = await getLinkedPrCount(repoOwner, repoName, issue.number);
+                // 언어 가져오기 및 연결된 PR 개수 가져오기를 병렬로 실행하여 시간 단축
+                const [languages, linkedPrCount] = await Promise.all([
+                    getRepoLanguages(repoOwner, repoName),
+                    getLinkedPrCount(repoOwner, repoName, issue.number)
+                ]);
 
                 // 소스 분석 (GitHub 이슈더라도 Algora/IssueHunt 라벨이 있으면 해당 소스로 표시)
                 const source = detectSource(issue);

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { crawlAllBounties } from '@/lib/crawler';
 
+export const maxDuration = 60;
+
 export async function POST() {
     try {
         const startTime = Date.now();

@@ -17,7 +17,7 @@ export async function generateHints(
     title: string,
     description: string,
     repoUrl: string,
-    repoContext?: { readme: string, fileTree: string }
+    repoContext?: { readme: string, fileTree: string, issueComments?: string }
 ): Promise<string> {
     const genAI = getGeminiClient();
     // Use gemini-2.5-flash for its massive context window capability and high generation speed
@@ -25,15 +25,24 @@ export async function generateHints(
         model: "gemini-2.5-flash",
         systemInstruction: `You are an elite, senior software architect specializing in technical bounties and open-source contributions.
 Your task is to provide a meticulously detailed, highly actionable, and precise step-by-step guide to solve the given issue.
-You have access to the repository's file tree and README. Analyze the architecture based on the file tree to determine precisely WHICH files need to be modified.
+You have access to the repository's file tree, README, and the latest issue comments.
 
-Provide practical, code-level hints:
-1. Exact files that likely need changes (reference the actual file tree paths from the provided File Tree context).
-2. The specific architectural approach to solve the issue.
-3. Concrete code snippet suggestions matching the project's language and framework.
-4. Potential edge cases or pitfalls.
-
-Do NOT give generic advice. Use the provided File Tree to anchor your suggestions to real files. Be concise but highly technical.`
+IMPORTANT: You MUST respond purely in valid JSON matching the following schema. Do NOT include markdown blocks like \`\`\`json.
+{
+  "competition": {
+    "statusSummary": "Brief summary of active competition (e.g. '2 users attempted, 1 open PR. High competition.') based on the comments.",
+    "isRecommended": boolean // false if a PR is submitted and likely to merge, true if it's still available or early.
+  },
+  "filesToModify": ["path/to/file.py"],
+  "architectureApproach": "1-2 sentences explaining the core architectural fix.",
+  "stepByStepGuide": [
+    {
+      "title": "Contextual title of the step",
+      "description": "Thoroughly detailed explanation of what needs to be changed.",
+      "codeSnippet": "Code snippet demonstrating the exact change or implementation (optional, but highly recommended)"
+    }
+  ]
+}`
     });
 
     let userPrompt = `Title: ${title}\nDescription: ${description}\nRepo URL: ${repoUrl}\n`;
@@ -42,8 +51,16 @@ Do NOT give generic advice. Use the provided File Tree to anchor your suggestion
         userPrompt += `\n--- REPOSITORY CONTEXT ---\n`;
         userPrompt += `[FILE TREE]\n${repoContext.fileTree}\n\n`;
         userPrompt += `[README SUMMARY]\n${repoContext.readme}\n`;
+        if (repoContext.issueComments) {
+            userPrompt += `[LATEST ISSUE COMMENTS]\n${repoContext.issueComments}\n`;
+        }
     }
 
-    const result = await model.generateContent(userPrompt);
+    const result = await model.generateContent({
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json"
+        }
+    });
     return result.response.text();
 }

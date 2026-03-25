@@ -10,7 +10,7 @@ interface AiHintsModalProps {
 }
 
 export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHintsModalProps) {
-    const [hints, setHints] = useState<string>('');
+    const [hints, setHints] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +32,15 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                 }
 
                 const data = await res.json();
-                setHints(data.hints);
+                
+                let parsedHints;
+                try {
+                    const cleaned = data.hints.replace(/```json/gi, '').replace(/```/g, '').trim();
+                    parsedHints = JSON.parse(cleaned);
+                } catch (e) {
+                    parsedHints = data.hints;
+                }
+                setHints(parsedHints);
             } catch (err: any) {
                 setError(`Connection Error: ${err.message}`);
             } finally {
@@ -46,16 +54,16 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={onClose} />
             
-            <div className="relative bg-gray-900 border border-gray-800 w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="relative bg-gray-900 border border-gray-800 w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 {/* Header */}
                 <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gradient-to-r from-purple-500/10 to-blue-500/10">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
+                        <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center shadow-inner shadow-purple-500/20">
                             <Sparkles className="w-6 h-6 text-purple-400" />
                         </div>
                         <div>
-                            <h2 className="text-xl font-bold text-white font-display">AI Solution Hints</h2>
-                            <p className="text-gray-400 text-xs truncate max-w-[300px]">{bountyTitle}</p>
+                            <h2 className="text-xl font-bold text-white font-display">Elite AI Solution</h2>
+                            <p className="text-gray-400 text-xs truncate max-w-[400px]">{bountyTitle}</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-800 rounded-full transition-colors text-gray-400 hover:text-white">
@@ -66,44 +74,90 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                 {/* Content */}
                 <div className="p-8 overflow-y-auto custom-scrollbar">
                     {loading ? (
-                        <div className="py-20 text-center">
-                            <Loader2 className="w-12 h-12 animate-spin text-purple-500 mx-auto mb-6" />
-                            <h3 className="text-lg font-bold text-white mb-2">Analyzing Repo & Issue...</h3>
-                            <p className="text-gray-400 text-sm">BountyAI is generating your custom solution path.</p>
+                        <div className="py-24 text-center">
+                            <Loader2 className="w-14 h-14 animate-spin text-purple-500 mx-auto mb-6" />
+                            <h3 className="text-xl font-bold text-white mb-2">Analyzing Repo & Comments...</h3>
+                            <p className="text-gray-400 text-sm">Reviewing active competition and generating your custom solution path.</p>
                         </div>
                     ) : error ? (
-                        <div className="py-12 text-center">
-                            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                            <h3 className="text-lg font-bold text-white mb-2">Analysis Failed</h3>
-                            <p className="text-red-400 text-sm mb-6">{error}</p>
-                            <button onClick={onClose} className="bg-gray-800 hover:bg-gray-700 text-white px-6 py-2 rounded-xl transition">Close</button>
+                        <div className="py-20 text-center">
+                            <AlertCircle className="w-14 h-14 text-red-500 mx-auto mb-4" />
+                            <h3 className="text-xl font-bold text-white mb-2">Analysis Failed</h3>
+                            <p className="text-red-400 text-sm mb-8">{error}</p>
+                            <button onClick={onClose} className="bg-gray-800 hover:bg-gray-700 text-white px-8 py-3 rounded-xl transition font-medium">Close</button>
                         </div>
                     ) : (
                         <div className="prose prose-invert max-w-none">
-                            <div className="whitespace-pre-wrap text-gray-300 leading-relaxed text-sm">
-                                {hints}
-                            </div>
-                            
-                            <div className="mt-10 pt-8 border-t border-gray-800">
-                                <h4 className="text-white font-bold mb-4 flex items-center gap-2">
-                                    <FileCode className="w-4 h-4 text-blue-400" />
-                                    Next Steps
-                                </h4>
-                                <ul className="space-y-3">
-                                    <li className="flex items-start gap-2 text-sm text-gray-400">
-                                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                        Clone the repository and create a new branch.
-                                    </li>
-                                    <li className="flex items-start gap-2 text-sm text-gray-400">
-                                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                        Implement the suggested changes based on AI hints.
-                                    </li>
-                                    <li className="flex items-start gap-2 text-sm text-gray-400">
-                                        <CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
-                                        Verify your solution with local tests.
-                                    </li>
-                                </ul>
-                            </div>
+                            {typeof hints === 'string' ? (
+                                <div className="whitespace-pre-wrap text-gray-300 leading-relaxed text-sm">
+                                    {hints}
+                                </div>
+                            ) : (
+                                <div className="space-y-10">
+                                    {/* 1. Competition Analysis */}
+                                    <div className={`p-6 rounded-2xl border flex gap-4 ${hints?.competition?.isRecommended ? 'bg-green-500/10 border-green-500/20' : 'bg-orange-500/10 border-orange-500/20'}`}>
+                                        <div className="mt-1">
+                                            {hints?.competition?.isRecommended ? (
+                                                <CheckCircle2 className="w-6 h-6 text-green-500" />
+                                            ) : (
+                                                <AlertCircle className="w-6 h-6 text-orange-500" />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-bold text-white mb-2 !mt-0">
+                                                {hints?.competition?.isRecommended ? 'Recommended to Proceed' : 'High Competition / Not Recommended'}
+                                            </h3>
+                                            <p className="text-gray-300 text-sm m-0 leading-relaxed">{hints?.competition?.statusSummary}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* 2. Architecture Approach */}
+                                    <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800/50">
+                                        <h3 className="text-lg font-bold text-white mb-3 !mt-0">Architecture Approach</h3>
+                                        <p className="text-gray-300 text-sm leading-relaxed m-0">{hints?.architectureApproach}</p>
+                                    </div>
+
+                                    {/* 3. Files to Modify */}
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                            <FileCode className="w-5 h-5 text-blue-400" />
+                                            Target Files
+                                        </h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {hints?.filesToModify?.map((file: string, idx: number) => (
+                                                <span key={idx} className="bg-gray-800 text-blue-400 px-4 py-2 rounded-xl text-xs font-mono border border-gray-700/50 shadow-inner">
+                                                    {file}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* 4. Step by Step Guide */}
+                                    <div>
+                                        <h3 className="text-lg font-bold text-white mb-6 pt-4 border-t border-gray-800/50">Implementation Steps</h3>
+                                        <div className="space-y-6 relative before:absolute before:inset-0 before:ml-[1.1rem] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-gray-800 before:to-transparent">
+                                            {hints?.stepByStepGuide?.map((step: any, idx: number) => (
+                                                <div key={idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                                                    <div className="flex items-center justify-center w-10 h-10 rounded-full border-4 border-gray-900 bg-gray-800 text-gray-400 group-[.is-active]:bg-purple-600 group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 font-bold z-10">
+                                                        {idx + 1}
+                                                    </div>
+                                                    <div className="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] p-5 rounded-2xl bg-gray-800/50 border border-gray-700/50 shadow-lg">
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <h4 className="font-bold text-white !m-0">{step.title}</h4>
+                                                        </div>
+                                                        <p className="text-sm text-gray-400 m-0 mb-4">{step.description}</p>
+                                                        {step.codeSnippet && (
+                                                            <pre className="!bg-black/60 p-4 rounded-xl border border-gray-800/50 text-xs text-gray-300 overflow-x-auto !m-0 custom-scrollbar">
+                                                                <code>{step.codeSnippet}</code>
+                                                            </pre>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </div>

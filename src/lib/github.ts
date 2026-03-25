@@ -1,6 +1,7 @@
 export interface RepoContext {
     readme: string;
     fileTree: string;
+    issueComments?: string;
     error?: string;
 }
 
@@ -80,9 +81,35 @@ export async function getRepositoryContext(issueUrl: string): Promise<RepoContex
             console.warn(`Failed to fetch README for ${owner}/${repo}`);
         }
 
+        // 3. Fetch Issue Comments
+        let issueComments = '';
+        const issueMatch = issueUrl.match(/\/issues\/(\d+)/);
+        const issueNumber = issueMatch ? issueMatch[1] : null;
+
+        if (issueNumber) {
+            try {
+                const commentsRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}/comments?per_page=15&sort=updated&direction=desc`, {
+                    headers: { 
+                        'User-Agent': 'BountyAI-Agent',
+                        ...(process.env.GITHUB_TOKEN ? { 'Authorization': `token ${process.env.GITHUB_TOKEN}` } : {})
+                    },
+                    signal: AbortSignal.timeout(8000)
+                });
+                if (commentsRes.ok) {
+                    const commentsData = await commentsRes.json();
+                    if (Array.isArray(commentsData)) {
+                        issueComments = commentsData.map(c => `[${c.user.login}]: ${c.body.replace(/\n+/g, ' ').slice(0, 300)}`).join('\n');
+                    }
+                }
+            } catch (e) {
+                console.warn(`Failed to fetch comments for ${owner}/${repo}#${issueNumber}`);
+            }
+        }
+
         return {
             readme: readme || 'README not found or empty.',
             fileTree: fileTree || 'File tree not available.',
+            issueComments: issueComments || 'No recent comments.',
         };
 
     } catch (error: any) {

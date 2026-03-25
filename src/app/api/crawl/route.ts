@@ -44,6 +44,7 @@ export async function POST() {
                 where: { url: bounty.url },
                 update: {
                     linkedPrCount: bounty.linkedPrCount,
+                    competitors: bounty.competitors,
                     lastActivityAt: bounty.lastActivityAt,
                 },
                 create: {
@@ -62,6 +63,7 @@ export async function POST() {
                     estimatedHours,
                     aiAnalysis,
                     linkedPrCount: bounty.linkedPrCount,
+                    competitors: bounty.competitors,
                     lastActivityAt: bounty.lastActivityAt,
                 },
             });

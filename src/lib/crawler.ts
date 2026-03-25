@@ -23,6 +23,7 @@ interface CrawledBounty {
     languages: string[];
     postedAt: Date;
     linkedPrCount: number;
+    competitors: number;
     lastActivityAt: Date;
 }
 
@@ -81,9 +82,9 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
                 const repoName = repoMatch?.[2] || '';
 
                 // 언어 가져오기 및 연결된 PR 개수 가져오기를 병렬로 실행하여 시간 단축
-                const [languages, linkedPrCount] = await Promise.all([
+                const [languages, metrics] = await Promise.all([
                     getRepoLanguages(repoOwner, repoName),
-                    getLinkedPrCount(repoOwner, repoName, issue.number)
+                    getIssueMetrics(repoOwner, repoName, issue.number, (issue as any).user?.login)
                 ]);
 
                 // 소스 분석 (GitHub 이슈더라도 Algora/IssueHunt 라벨이 있으면 해당 소스로 표시)
@@ -101,7 +102,8 @@ export async function crawlGitHubBounties(): Promise<CrawledBounty[]> {
                     labels: issue.labels.map((l) => l.name),
                     languages,
                     postedAt: new Date(issue.created_at),
-                    linkedPrCount,
+                    linkedPrCount: metrics.linkedPrCount,
+                    competitors: metrics.competitors,
                     lastActivityAt: new Date(issue.updated_at),
                 });
             }
@@ -179,11 +181,12 @@ async function getRepoLanguages(
     }
 }
 
-async function getLinkedPrCount(
+async function getIssueMetrics(
     owner: string,
     name: string,
-    issueNumber: number
-): Promise<number> {
+    issueNumber: number,
+    authorLogin?: string
+): Promise<{ linkedPrCount: number, competitors: number }> {
     try {
         const response = await fetch(
             `https://api.github.com/repos/${owner}/${name}/issues/${issueNumber}/timeline`,
@@ -194,10 +197,11 @@ async function getLinkedPrCount(
                         ? { Authorization: `token ${process.env.GITHUB_TOKEN}` }
                         : {}),
                 },
+                signal: AbortSignal.timeout(8000)
             }
         );
 
-        if (!response.ok) return 0;
+        if (!response.ok) return { linkedPrCount: 0, competitors: 0 };
 
         const data = await response.json();
         const prEvents = data.filter((e: any) => 
@@ -206,8 +210,37 @@ async function getLinkedPrCount(
             e.source?.issue?.pull_request
         );
 
-        return prEvents.length;
+        const commentEvents = data.filter((e: any) => e.event === 'commented');
+        const attemptingUsers = new Set<string>();
+        
+        for (const c of commentEvents) {
+            const body = (c.body || '').toLowerCase();
+            const actor = c.actor?.login || c.user?.login;
+            
+            // Exclude the issue author from competitors
+            if (actor && actor !== authorLogin) {
+                if (body.includes('/attempt') || body.includes('work on this') || body.includes('take a shot')) {
+                    attemptingUsers.add(actor);
+                }
+            }
+        }
+        
+        let competitors = attemptingUsers.size;
+        
+        // If no explicit attempts are found but there are comments from others, use a rough heuristic
+        if (competitors === 0) {
+            const uniqueCommenters = new Set<string>();
+            commentEvents.forEach((c: any) => {
+                const actor = c.actor?.login || c.user?.login;
+                if (actor && actor !== authorLogin && !actor?.includes('bot')) {
+                    uniqueCommenters.add(actor);
+                }
+            });
+            competitors = Math.floor(uniqueCommenters.size / 3);
+        }
+
+        return { linkedPrCount: prEvents.length, competitors };
     } catch {
-        return 0;
+        return { linkedPrCount: 0, competitors: 0 };
     }
 }

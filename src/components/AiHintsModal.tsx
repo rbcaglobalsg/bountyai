@@ -146,10 +146,23 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                                                             <h4 className="font-bold text-white !m-0">{step.title}</h4>
                                                         </div>
                                                         <p className="text-sm text-gray-400 m-0 mb-4">{step.description}</p>
+                                                        
+                                                        {step.command && (
+                                                            <div className="mb-4">
+                                                                <p className="text-[10px] text-gray-500 mb-1.5 uppercase tracking-widest font-bold">Terminal</p>
+                                                                <pre className="bg-gray-950 p-4 rounded-xl border border-gray-800 font-mono text-xs text-green-400 overflow-x-auto !m-0 shadow-inner">
+                                                                    <code>$ {step.command}</code>
+                                                                </pre>
+                                                            </div>
+                                                        )}
+
                                                         {step.codeSnippet && (
-                                                            <pre className="!bg-black/60 p-4 rounded-xl border border-gray-800/50 text-xs text-gray-300 overflow-x-auto !m-0 custom-scrollbar">
-                                                                <code>{step.codeSnippet}</code>
-                                                            </pre>
+                                                            <div>
+                                                                <p className="text-[10px] text-gray-500 mb-1.5 uppercase tracking-widest font-bold">Code</p>
+                                                                <pre className="!bg-black/60 p-4 rounded-xl border border-gray-800/50 text-xs text-gray-300 overflow-x-auto !m-0 custom-scrollbar shadow-inner">
+                                                                    <code>{step.codeSnippet}</code>
+                                                                </pre>
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>

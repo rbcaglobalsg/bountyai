@@ -48,7 +48,14 @@ export async function GET(
         });
 
         if (submission?.aiHints) {
-            return NextResponse.json({ hints: submission.aiHints });
+            try {
+                // If the old cache is Markdown, JSON.parse will throw and it will regenerate.
+                const cleaned = submission.aiHints.replace(/```json/gi, '').replace(/```/g, '').trim();
+                JSON.parse(cleaned);
+                return NextResponse.json({ hints: submission.aiHints });
+            } catch (e) {
+                console.log('Legacy Markdown hints detected. Forcing regeneration to JSON...');
+            }
         }
 
         // Generate fresh hints

@@ -39,6 +39,7 @@ IMPORTANT: You MUST respond purely in valid JSON matching the following schema. 
     {
       "title": "Contextual title of the step",
       "description": "Thoroughly detailed explanation of what needs to be changed.",
+      "command": "Optional single exact terminal command to execute for this step (e.g. 'npm install', 'python script.py'). Do not write markdown blocks or multi-line commands here. Just the raw command string.",
       "codeSnippet": "Code snippet demonstrating the exact change or implementation (optional, but highly recommended)"
     }
   ]

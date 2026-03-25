@@ -56,11 +56,13 @@ IMPORTANT: You MUST respond in ${isEn ? 'English' : 'Korean (한국어) - All te
 
 IMPORTANT REWARD SUCCESS RULES:
 - You are a REWARD ARCHITECT. Your goal is to get the user PAID purely by copy-pasting.
+- Explain in extremely simple language so even a complete beginner who doesn't know GitHub can just follow and get the reward.
 - Format the 5-7 most critical steps in ${isEn ? 'English' : 'Korean'}.
-- MANDATORY: Do NOT just describe the solution. Write the EXACT lines of code to modify in 'codeSnippet'.
+- MANDATORY: Make sure EVERY single step from \`git clone\`, making changes, testing, to \`git push\` is provided flawlessly.
+- MANDATORY: Do NOT just describe the solution. Write the EXACT full code to replace or insert in 'codeSnippet'.
 - MANDATORY STEP 1: Provide the exact \`git clone\` command.
 - MANDATORY FINAL STEP: Provide the exact \`git push\` command and PR template.
-- Use extremely simple, non-preachy language. Assume the user is smart but BRAND NEW to GitHub.`
+- Use extremely simple, non-preachy language. Assume the user is a complete beginner.`
     });
 
     let userPrompt = `Title: ${title}\nDescription: ${description}\nRepo URL: ${repoUrl}\n`;

@@ -17,11 +17,12 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
     const [model, setModel] = useState<'gemini-3.1-pro-preview' | 'gemini-3-flash-preview'>('gemini-3.1-pro-preview');
 
     useEffect(() => {
+        const controller = new AbortController();
         const fetchHints = async () => {
             setLoading(true);
+            setError(null);
             try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s timeout to allow deep analysis
+                const timeoutId = setTimeout(() => controller.abort(new Error("Timeout of 150s exceeded while waiting for deep repository analysis.")), 150000); // 150s timeout to allow deep analysis
                 
                 const res = await fetch(`/api/bounties/${bountyId}/hints?lang=${language}&model=${model}`, {
                     signal: controller.signal
@@ -54,13 +55,25 @@ export default function AiHintsModal({ bountyId, bountyTitle, onClose }: AiHints
                 }
                 setHints(parsedHints);
             } catch (err: any) {
-                setError(`Connection Error: ${err.message}`);
+                if (err.name === 'AbortError' || err.message === 'Cancelled' || err?.message?.includes('aborted')) {
+                    if (err.message && err.message !== 'signal is aborted without reason' && err.message !== 'Cancelled' && !err.message.includes('aborted by the user')) {
+                        setError(`Analysis Failed: ${err.message}`);
+                    }
+                } else {
+                    setError(`Connection Error: ${err.message}`);
+                }
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted || (controller.signal.reason && controller.signal.reason.message !== 'Cancelled')) {
+                    setLoading(false);
+                }
             }
         };
         fetchHints();
-    }, [bountyId, language]); // Add language to dependency array
+        
+        return () => {
+            controller.abort(new Error("Cancelled"));
+        };
+    }, [bountyId, language, model]); // Added model to dependency array
 
     const toggleLanguage = () => {
         const nextLang = language === 'en' ? 'ko' : 'en';
